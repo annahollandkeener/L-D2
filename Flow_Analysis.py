@@ -29,7 +29,7 @@ while True:
 
 
 #Collecting details on csv
-file = input("Enter csv name: ")
+file = input("Enter csv name (including '.csv'): ")
 flowColumn = input("Enter name of flow column: ")
 dayColumn = input("Enter name of the time column (units in days): ")
 
@@ -47,6 +47,9 @@ while True:
 
 #list to keep track of ranges
 ranges = []
+
+#preset ranges
+defaultRanges = [(0,1500), (1500,3500), (3500, 7500), (7500, 10000), (10000, 50000)]
 
 #prompts user to specify ranges until they are finished 
 if specify == 'y':
@@ -70,7 +73,7 @@ if specify == 'y':
                         print("Start must be a number.")
                     
         while True:
-            end = input("\nEnter end of range " + str(rangeCount) + ": ")
+            end = input("Enter end of range " + str(rangeCount) + ": ")
             if not end.strip():
                 print("End cannot be empty.")
             else:
@@ -109,6 +112,39 @@ if specify == 'y':
 #Start of process
 print("\nWorking...")
 
-'''data = pd.read_csv(file, converters={flowColumn:int})
 
-df = pd.DataFrame(data)'''
+#reading in user file
+data = pd.read_csv(file, converters={flowColumn:int})
+#converting it to a dataframe
+df = pd.DataFrame(data)
+
+
+#Creating a dictionary to store dataframes
+rangeDataFrames = {}
+
+#Adding a dataframe for each range to list. Using default ranges if not specified. 
+if specify == 'n':
+    for r in defaultRanges:
+        dictName = "range" + r[0] + "_" + r[1]
+        dic = {
+            'Day' : [],
+            'Flow' : [],
+            }
+        dfRangeName = dictName + "df"
+        dfRange = pd.DataFrame(dic)
+        rangeDataFrames[dfRangeName] = dfRange
+#And using user given ranges when specified
+if specify == 'y':
+    for r in ranges:
+        dic = {
+            'Day' : [],
+            'Flow' : [],
+            }
+        print(dic)
+        dfName = "range" + str(r[0]) + "_" + str(r[1])
+        #dfs called using range#_#
+        dfName = pd.DataFrame(dic)
+        rangeDataFrames.append(dfRange)
+
+for frame in rangeDataFrames:
+    print(frame)
