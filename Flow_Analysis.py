@@ -6,6 +6,7 @@ import numpy as np
 file = ''
 flowColumn = ''
 dayColumn = ''
+df = ''
 
 print("\n------------Flow Analysis------------\n")
 
@@ -71,14 +72,11 @@ while True:
     else:
         print("Invalid input.")      
 
-#list to keep track of ranges
-ranges = []
-
-#preset ranges
-defaultRanges = [(0,1500), (1500,3500), (3500, 7500), (7500, 10000), (10000, 50000)]
 
 #prompts user to specify ranges until they are finished 
 if specify == 'y':
+    #list to keep track of ranges
+    ranges = []
     rangeCount = 1
     adding = True
 
@@ -129,11 +127,14 @@ if specify == 'y':
                     break
                 else:
                     print("Invalid input.")
+else:
+    #ranges will be set to defaults
+    ranges = [(0,1500), (1500,3500), (3500, 7500), (7500, 10000), (10000, 50000)]
 
-if specify == 'y':
-    print("\nYour ranges: ")
-    for t in ranges:
-        print(t)
+#print ranges
+print("\nYour ranges: ")
+for t in ranges:
+    print(t)
 
 #Start of process
 print("\nWorking...")
@@ -143,25 +144,43 @@ print("\nWorking...")
 rangeDataFrames = {}
 
 #Adding a dataframe for each range to list. Using default ranges if not specified. 
-if specify == 'n':
-    for r in defaultRanges:
-        dictName = "range" + str(r[0]) + "_" + str(r[1])
-        dic = {
-            'Day' : [],
-            'Flow' : [],
-            }
-        dfRangeName = dictName + "df"
-        dfRange = pd.DataFrame(dic)
-        rangeDataFrames[dfRangeName] = dfRange
-#And using user given ranges when specified
-if specify == 'y':
-    for r in ranges:
-        dictName = "range" + r[0] + "_" + r[1]
-        dic = {
-            'Day' : [],
-            'Flow' : [],
-            }
-        dfRangeName = dictName + "df"
-        dfRange = pd.DataFrame(dic)
-        rangeDataFrames[dfRangeName] = dfRange
-        
+for r in ranges:
+    dictName = "range" + str(r[0]) + "_" + str(r[1])
+    dic = {
+        'Day' : [],
+        'Flow' : [],
+        }
+    dfRangeName = dictName + "df"
+    dfRange = pd.DataFrame(dic)
+    rangeDataFrames[dfRangeName] = dfRange
+
+print(rangeDataFrames)
+
+'''
+#New row function
+x = 0
+def new_row(dataFrame, flow):
+    new_row = {'Day': df['Day'][x], 'Flow': flow}
+    return new_row
+
+#Sorting all of the flows in the flow column into specified ranges
+for flow in df['MF']:
+    if flow >= ranges:
+        range0_1500df = range0_1500df.append(new_row(range0_1500df, flow), ignore_index=True)
+        x += 1
+    elif ((flow > 1500) & (flow <= 3500)):
+        range1500_3500df = range1500_3500df.append(new_row(range3500_7500df, flow), ignore_index=True)
+        x += 1
+    elif ((flow > 3500) & (flow <= 7500)):
+        range3500_7500df = range3500_7500df.append(new_row(range3500_7500df, flow), ignore_index=True)
+        x += 1
+    elif ((flow > 7500) & (flow <= 10000)):
+        range7500_10000df = range7500_10000df.append(new_row(range7500_10000df, flow), ignore_index=True)
+        x += 1
+    elif (flow > 10000):
+        rangeOver10000df = rangeOver10000df.append(new_row(rangeOver10000df, flow), ignore_index=True)
+        x += 1
+    else:
+        catchall.append(flow)
+        x += 1
+'''
