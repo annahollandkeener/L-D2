@@ -18,7 +18,7 @@ while True:
     elif flowDurationCurve == 'n':
         break
     else:
-        print("*** Invalid input ***")
+        print("***Invalid input***")
 
 #Remembering if user wants the instance duration charts included or not
 while True:
@@ -28,7 +28,7 @@ while True:
     elif instanceClass == 'n':
         break
     else:
-        print("*** Invalid input ***")       
+        print("***Invalid input***")       
 
 #Requesting file from user until viable file provided
 while True:
@@ -39,25 +39,31 @@ while True:
         df = pd.DataFrame(data)
         break
     except FileNotFoundError:
-        print("\n*** Error reading the CSV file. \nMake sure it is spelled correctly and in the same directory as this executable ***")
+        print("\n***Error reading the CSV file*** \n(Make sure it is spelled correctly and in the same directory as this executable if not using relative/direct path.)")
 
     
 #Collecting details on csv
 while True:
-    flowColumn = input("\nEnter name of flow column (be mindfu of capital letters): ")
+    flowColumn = input("\nEnter name of flow column (be mindful of capital letters): ")
     if flowColumn in df.columns:
         print("Column '" + flowColumn + "' selected.")
         break
     else:
-        print("\n*** This is not a column in the given csv ***")
+        print("\n***This is not a column in the given csv***")
+        print("\nColumns in the csv: ")
+        for column in df.columns:
+            print("'" + column + "'")
 
 while True:
-    dayColumn = input("\nEnter name of the time column (units in days, be mindfu of capital letters): ")
+    dayColumn = input("\nEnter name of the time column (units in days, be mindful of capital letters): ")
     if dayColumn in df.columns:
         print("Column '" + dayColumn + "' selected.")
         break
     else:
-        print("\n*** This is not a column in the given csv ***")
+        print("\n***This is not a column in the given csv***")
+        print("\nColumns in the csv: ")
+        for column in df.columns:
+            print("'" + column + "'")
 
 
 #Prompting the user to decide between default ranges and unique ranges
@@ -67,7 +73,6 @@ while True:
     if specify == 'y':
         break
     elif specify == 'n':
-        print("Default ranges selected: 0-1500, 1500-3500, 3500-7500, 7500-10000, >10000")
         break
     else:
         print("Invalid input.")      
@@ -128,7 +133,7 @@ if specify == 'y':
                 else:
                     print("Invalid input.")
 else:
-    #ranges will be set to defaults
+    #ranges will be set to default
     ranges = [(0,1500), (1500,3500), (3500, 7500), (7500, 10000), (10000, 50000)]
 
 #print ranges
@@ -140,10 +145,10 @@ for t in ranges:
 print("\nWorking...")
 
 
-#Creating a dictionary to store dataframes. Range dataframe can be accessed by range#_#df
+#Creating a dictionary to store dataframes. 
 rangeDataFrames = {}
 
-#Adding a dataframe for each range to list. Using default ranges if not specified. 
+#Adding a dataframe to the data frame dictionary for each range. Using default ranges if not specified. Range dataframe can be accessed by range#_#df
 for r in ranges:
     dictName = "range" + str(r[0]) + "_" + str(r[1])
     dic = {
@@ -154,7 +159,8 @@ for r in ranges:
     dfRange = pd.DataFrame(dic)
     rangeDataFrames[dfRangeName] = dfRange
 
-print(rangeDataFrames)
+'''for r in rangeDataFrames:
+    print(r)'''
 
 '''
 #New row function
@@ -164,8 +170,21 @@ def new_row(dataFrame, flow):
     return new_row
 
 #Sorting all of the flows in the flow column into specified ranges
-for flow in df['MF']:
-    if flow >= ranges:
+for flow in df[flowColumn]:
+    for r in ranges:
+        if flow >= r[0]:
+            if flow <= r[1]:
+                new_row = {'Day': df['Day'][x], 'Flow': flow}
+                rangeKey = 'range' + r[0] + "_" + r[1] + "df"
+                rangeDataFrames[rangeKey].append(new_row)
+                '''
+
+
+
+
+'''
+    if flow >= ranges[0][0]:
+        if flow <= ranges[]
         range0_1500df = range0_1500df.append(new_row(range0_1500df, flow), ignore_index=True)
         x += 1
     elif ((flow > 1500) & (flow <= 3500)):
@@ -181,6 +200,4 @@ for flow in df['MF']:
         rangeOver10000df = rangeOver10000df.append(new_row(rangeOver10000df, flow), ignore_index=True)
         x += 1
     else:
-        catchall.append(flow)
-        x += 1
-'''
+        x += 1'''
