@@ -2,6 +2,8 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 
+import stylefile
+
 #CSV variables to remember
 file = ''
 flowColumn = ''
@@ -9,7 +11,7 @@ dayColumn = ''
 df = ''
 
 print("\n------------Flow Analysis------------\n")
-
+'''
 #Remembering if user wants the flow duration curve chart included or not
 while True:
     flowDurationCurve = input("Flow duration curve? (y/n): ")
@@ -29,6 +31,7 @@ while True:
         break
     else:
         print("*** Invalid input ***")       
+'''
 
 #Requesting file from user until viable file provided
 while True:
@@ -67,11 +70,10 @@ while True:
     if specify == 'y':
         break
     elif specify == 'n':
-        print("Default ranges selected: 0-1500, 1500-3500, 3500-7500, 7500-10000, >10000")
+        print("Default ranges selected.")
         break
     else:
         print("Invalid input.")      
-
 
 #prompts user to specify ranges until they are finished 
 if specify == 'y':
@@ -135,6 +137,16 @@ else:
 print("\nYour ranges: ")
 for t in ranges:
     print(t)
+
+while True:
+    colors = ['basic', 'month colors']
+    color = input("\nPlease select display option: 'basic' or 'month colors': ")
+
+    if color in colors:
+        break
+    else:
+        print("***Invalid input***")
+
 
 #Start of process
 print("\nWorking...")
@@ -222,5 +234,39 @@ for r in ranges:
     instDFName = "instances" + str(r[0]) + "_" + str(r[1])
     rangeDFName = "range" + str(r[0]) + "_" + str(r[1]) + "df"
     instDataFrames[instDFName] = flow_duration(rangeDFName, instDFName)
+
+
+#Making graphs for Days within certain ranges
+for r in ranges:
+    rangeDFName = "range" + str(r[0]) + "_" + str(r[1]) + "df"
+    rangeDF = rangeDataFrames[rangeDFName]
+
+    #defining plot size
+    plt.figure(figsize=(8, 6))
+
+    #defining plot type
+    plt.scatter(rangeDF['Day'], rangeDF['Flow'], color='black', linestyle='None', zorder=2, marker='o', edgecolor='white', s=90)
+
+    #Labels
+    plt.title("Days within Flow Rate " + str(r[0]) + " - " + str(r[1]) + " (2013-2023)")
+    plt.xlabel("Day")
+    plt.ylabel("Flow Rate (cfs)")
+
+    #Limits and limit labels
+    plt.xlim(1, 366)
+    plt.xticks(stylefile.xtick_positions, stylefile.xtick_labels)
+    plt.ylim(0, r[1] * 1.5)
+
+    #Theme 
+    if color == 'month colors':
+        stylefile.monthColors(plt)
+    else:
+        print("Make basic style")
+
+    #plt.legend(handles=style.legend_entries, bbox_to_anchor=(0.5, -0.2), loc='upper center', ncol=2)
+    
+
+    plt.show()
+
 
 
