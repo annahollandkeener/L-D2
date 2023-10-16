@@ -154,8 +154,6 @@ for r in ranges:
     dfRange = pd.DataFrame(dic)
     rangeDataFrames[dfRangeName] = dfRange
 
-print(rangeDataFrames)
-
 
 #Sorting all of the flows in the flow column into specified ranges
 i = 0
@@ -164,37 +162,65 @@ while i < (len(df[flowColumn])):
         dictName = "range" + str(r[0]) + "_" + str(r[1])
         dfRangeName = dictName + "df"
 
-        print(i)
         if df[flowColumn][i] >= r[0]:
             if df[flowColumn][i] >= r[0] and df[flowColumn][i] <= r[1]:
                 new_row = {'Day': df['Day'][i], 'Flow': df[flowColumn][i]}
                 rangeDataFrames[dfRangeName] = pd.concat([rangeDataFrames[dfRangeName], pd.DataFrame([new_row])], ignore_index=True)
-                print("Yes")
                 break
         
     i += 1
     
-print(rangeDataFrames)
+#Consecutive day count function
+def flow_duration(range, instance):
+    i = 0
+    curr = i
+    nex = i + 1
 
-       
+    rangeDF = rangeDataFrames[range]
+    instanceDF = instDataFrames[instance]
 
-'''
-if flow >= ranges[0]:
-        range0_1500df = range0_1500df.append(new_row(range0_1500df, flow), ignore_index=True)
-        x += 1
-    elif ((flow > 1500) & (flow <= 3500)):
-        range1500_3500df = range1500_3500df.append(new_row(range3500_7500df, flow), ignore_index=True)
-        x += 1
-    elif ((flow > 3500) & (flow <= 7500)):
-        range3500_7500df = range3500_7500df.append(new_row(range3500_7500df, flow), ignore_index=True)
-        x += 1
-    elif ((flow > 7500) & (flow <= 10000)):
-        range7500_10000df = range7500_10000df.append(new_row(range7500_10000df, flow), ignore_index=True)
-        x += 1
-    elif (flow > 10000):
-        rangeOver10000df = rangeOver10000df.append(new_row(rangeOver10000df, flow), ignore_index=True)
-        x += 1
-    else:
-        catchall.append(flow)
-        x += 1
-'''
+    while i < (len(rangeDF['Day']) - 1):
+        consecutive = True
+        duration = 1
+
+        while consecutive == True:
+            if nex == len(rangeDF):
+                consecutive = False
+                new_row = {'dayStart': rangeDF['Day'][i], 'duration': duration}
+                instanceDF = pd.concat([instanceDF, pd.DataFrame([new_row])], ignore_index=True)
+                i = curr
+                return instanceDF
+            else:
+                if (((rangeDF['Day'][nex]) - 1) == (rangeDF['Day'][curr])):
+                    consecutive = True
+                    duration += 1
+                    curr += 1
+                    nex += 1
+                else:
+                    consecutive = False
+                    new_row = {'dayStart': rangeDF['Day'][i], 'duration': duration}
+                    instanceDF = pd.concat([instanceDF, pd.DataFrame([new_row])], ignore_index=True)
+                    curr += 1
+                    nex += 1
+                    i = curr
+
+#Creating a dictionary to store instance dataframes. Instance dataframe can be accessed by instances#_#
+instDataFrames = {}
+
+#Adding a dataframe for each range to the instance df list. Using default ranges if not specified. 
+for r in ranges:
+    dictName = "instances" + str(r[0]) + "_" + str(r[1])
+    dic = {
+        'dayStart' : [],
+        'duration' : [],
+        }
+    dfInst = pd.DataFrame(dic)
+    instDataFrames[dictName] = dfInst
+
+#Taking note of consecutive days of flow at each rate and adding to corresponding instance dataframe 
+for r in ranges:
+    instDFName = "instances" + str(r[0]) + "_" + str(r[1])
+    rangeDFName = "range" + str(r[0]) + "_" + str(r[1]) + "df"
+    instDataFrames[instDFName] = flow_duration(rangeDFName, instDFName)
+
+
