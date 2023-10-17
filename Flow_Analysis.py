@@ -2,6 +2,10 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 
+
+import stylefile
+
+
 #CSV variables to remember
 file = ''
 flowColumn = ''
@@ -9,6 +13,8 @@ dayColumn = ''
 df = ''
 
 print("\n------------Flow Analysis------------\n")
+
+'''
 
 #Remembering if user wants the flow duration curve chart included or not
 while True:
@@ -18,6 +24,7 @@ while True:
     elif flowDurationCurve == 'n':
         break
     else:
+
         print("***Invalid input***")
 
 #Remembering if user wants the instance duration charts included or not
@@ -29,6 +36,7 @@ while True:
         break
     else:
         print("***Invalid input***")       
+
 
 #Requesting file from user until viable file provided
 while True:
@@ -54,6 +62,7 @@ while True:
         for column in df.columns:
             print("'" + column + "'")
 
+
 while True:
     dayColumn = input("\nEnter name of the time column (units in days, be mindful of capital letters): ")
     if dayColumn in df.columns:
@@ -73,10 +82,10 @@ while True:
     if specify == 'y':
         break
     elif specify == 'n':
+        print("Default ranges selected.")
         break
     else:
         print("Invalid input.")      
-
 
 #prompts user to specify ranges until they are finished 
 if specify == 'y':
@@ -133,7 +142,7 @@ if specify == 'y':
                 else:
                     print("Invalid input.")
 else:
-    #ranges will be set to default
+    #ranges will be set to defaults
     ranges = [(0,1500), (1500,3500), (3500, 7500), (7500, 10000), (10000, 50000)]
 
 #print ranges
@@ -141,14 +150,30 @@ print("\nYour ranges: ")
 for t in ranges:
     print(t)
 
+while True:
+    colors = ['basic', 'month colors']
+    color = input("\nPlease select display option: 'basic' or 'month colors': ")
+
+    if color in colors:
+        break
+    else:
+        print("***Invalid input***")
+
+
 #Start of process
 print("\nWorking...")
+
 
 
 #Creating a dictionary to store dataframes. 
 rangeDataFrames = {}
 
 #Adding a dataframe to the data frame dictionary for each range. Using default ranges if not specified. Range dataframe can be accessed by range#_#df
+
+#Creating a dictionary to store dataframes. Range dataframe can be accessed by range#_#df
+rangeDataFrames = {}
+
+#Adding a dataframe for each range to list. Using default ranges if not specified. 
 for r in ranges:
     dictName = "range" + str(r[0]) + "_" + str(r[1])
     dic = {
@@ -158,6 +183,7 @@ for r in ranges:
     dfRangeName = dictName + "df"
     dfRange = pd.DataFrame(dic)
     rangeDataFrames[dfRangeName] = dfRange
+
 
 '''for r in rangeDataFrames:
     print(r)'''
@@ -169,35 +195,108 @@ def new_row(dataFrame, flow):
     new_row = {'Day': df['Day'][x], 'Flow': flow}
     return new_row
 
+
 #Sorting all of the flows in the flow column into specified ranges
-for flow in df[flowColumn]:
+i = 0
+while i < (len(df[flowColumn])):
     for r in ranges:
-        if flow >= r[0]:
-            if flow <= r[1]:
-                new_row = {'Day': df['Day'][x], 'Flow': flow}
-                rangeKey = 'range' + r[0] + "_" + r[1] + "df"
-                rangeDataFrames[rangeKey].append(new_row)
-                '''
+        dictName = "range" + str(r[0]) + "_" + str(r[1])
+        dfRangeName = dictName + "df"
+
+        if df[flowColumn][i] >= r[0]:
+            if df[flowColumn][i] >= r[0] and df[flowColumn][i] <= r[1]:
+                new_row = {'Day': df['Day'][i], 'Flow': df[flowColumn][i]}
+                rangeDataFrames[dfRangeName] = pd.concat([rangeDataFrames[dfRangeName], pd.DataFrame([new_row])], ignore_index=True)
+                break
+        
+    i += 1
+    
+#Consecutive day count function
+def flow_duration(range, instance):
+    i = 0
+    curr = i
+    nex = i + 1
+
+    rangeDF = rangeDataFrames[range]
+    instanceDF = instDataFrames[instance]
+
+    while i < (len(rangeDF['Day']) - 1):
+        consecutive = True
+        duration = 1
+
+        while consecutive == True:
+            if nex == len(rangeDF):
+                consecutive = False
+                new_row = {'dayStart': rangeDF['Day'][i], 'duration': duration}
+                instanceDF = pd.concat([instanceDF, pd.DataFrame([new_row])], ignore_index=True)
+                i = curr
+                return instanceDF
+            else:
+                if (((rangeDF['Day'][nex]) - 1) == (rangeDF['Day'][curr])):
+                    consecutive = True
+                    duration += 1
+                    curr += 1
+                    nex += 1
+                else:
+                    consecutive = False
+                    new_row = {'dayStart': rangeDF['Day'][i], 'duration': duration}
+                    instanceDF = pd.concat([instanceDF, pd.DataFrame([new_row])], ignore_index=True)
+                    curr += 1
+                    nex += 1
+                    i = curr
+
+#Creating a dictionary to store instance dataframes. Instance dataframe can be accessed by instances#_#
+instDataFrames = {}
+
+#Adding a dataframe for each range to the instance df list. Using default ranges if not specified. 
+for r in ranges:
+    dictName = "instances" + str(r[0]) + "_" + str(r[1])
+    dic = {
+        'dayStart' : [],
+        'duration' : [],
+        }
+    dfInst = pd.DataFrame(dic)
+    instDataFrames[dictName] = dfInst
+
+#Taking note of consecutive days of flow at each rate and adding to corresponding instance dataframe 
+for r in ranges:
+    instDFName = "instances" + str(r[0]) + "_" + str(r[1])
+    rangeDFName = "range" + str(r[0]) + "_" + str(r[1]) + "df"
+    instDataFrames[instDFName] = flow_duration(rangeDFName, instDFName)
 
 
+#Making graphs for Days within certain ranges
+for r in ranges:
+    rangeDFName = "range" + str(r[0]) + "_" + str(r[1]) + "df"
+    rangeDF = rangeDataFrames[rangeDFName]
 
+    #defining plot size
+    plt.figure(figsize=(8, 6))
 
-'''
-    if flow >= ranges[0][0]:
-        if flow <= ranges[]
-        range0_1500df = range0_1500df.append(new_row(range0_1500df, flow), ignore_index=True)
-        x += 1
-    elif ((flow > 1500) & (flow <= 3500)):
-        range1500_3500df = range1500_3500df.append(new_row(range3500_7500df, flow), ignore_index=True)
-        x += 1
-    elif ((flow > 3500) & (flow <= 7500)):
-        range3500_7500df = range3500_7500df.append(new_row(range3500_7500df, flow), ignore_index=True)
-        x += 1
-    elif ((flow > 7500) & (flow <= 10000)):
-        range7500_10000df = range7500_10000df.append(new_row(range7500_10000df, flow), ignore_index=True)
-        x += 1
-    elif (flow > 10000):
-        rangeOver10000df = rangeOver10000df.append(new_row(rangeOver10000df, flow), ignore_index=True)
-        x += 1
+    #defining plot type
+    plt.scatter(rangeDF['Day'], rangeDF['Flow'], color='black', linestyle='None', zorder=2, marker='o', edgecolor='white', s=90)
+
+    #Labels
+    plt.title("Days within Flow Rate " + str(r[0]) + " - " + str(r[1]) + " (2013-2023)")
+    plt.xlabel("Day")
+    plt.ylabel("Flow Rate (cfs)")
+
+    #Limits and limit labels
+    plt.xlim(1, 366)
+    plt.xticks(stylefile.xtick_positions, stylefile.xtick_labels)
+    plt.ylim(0, r[1] * 1.5)
+
+    #Theme 
+    if color == 'month colors':
+        stylefile.monthColors(plt)
     else:
-        x += 1'''
+        print("Make basic style")
+
+    #plt.legend(handles=style.legend_entries, bbox_to_anchor=(0.5, -0.2), loc='upper center', ncol=2)
+    
+
+    plt.show()
+
+
+
+
