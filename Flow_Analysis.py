@@ -13,7 +13,7 @@ dayColumn = ''
 df = ''
 
 print("\n------------Flow Analysis------------\n")
-
+#Manual data entry mode
 '''
 
 #Remembering if user wants the flow duration curve chart included or not
@@ -35,7 +35,8 @@ while True:
     elif instanceClass == 'n':
         break
     else:
-        print("***Invalid input***")       
+        print("***Invalid input***")     
+    '''  
 
 
 #Requesting file from user until viable file provided
@@ -143,6 +144,7 @@ if specify == 'y':
                     print("Invalid input.")
 else:
     #ranges will be set to defaults
+    print("Ranges will be set to defaults.")
     ranges = [(0,1500), (1500,3500), (3500, 7500), (7500, 10000), (10000, 50000)]
 
 #print ranges
@@ -168,8 +170,6 @@ print("\nWorking...")
 #Creating a dictionary to store dataframes. 
 rangeDataFrames = {}
 
-#Adding a dataframe to the data frame dictionary for each range. Using default ranges if not specified. Range dataframe can be accessed by range#_#df
-
 #Creating a dictionary to store dataframes. Range dataframe can be accessed by range#_#df
 rangeDataFrames = {}
 
@@ -185,10 +185,6 @@ for r in ranges:
     rangeDataFrames[dfRangeName] = dfRange
 
 
-'''for r in rangeDataFrames:
-    print(r)'''
-
-'''
 #New row function
 x = 0
 def new_row(dataFrame, flow):
@@ -264,6 +260,53 @@ for r in ranges:
     rangeDFName = "range" + str(r[0]) + "_" + str(r[1]) + "df"
     instDataFrames[instDFName] = flow_duration(rangeDFName, instDFName)
 
+#Flow Duration Curve Function and Graph Creation
+def fdc(dataframe, flows):
+    #Calculating probabilities for each flow 
+    sortedFlows = sorted(dataframe[flows], reverse=True)
+    n = len(sortedFlows)
+    exceedance_prob = np.arange(1, n + 1) / (n + 1) * 100
+
+    data = dataframe[flows] 
+    x = range(len(data))  
+    y = data  
+
+    #Quartile Calculations
+    q1 = np.percentile(data, 25)
+    q2 = np.percentile(data, 50)
+    q3 = np.percentile(data, 75)    
+
+    #Graph Creation
+    plt.figure(figsize=(8, 6))
+    plt.plot(exceedance_prob, sortedFlows, linestyle='-', color='red')
+    #limits
+    plt.xlim(0, 100)
+    plt.ylim(0, len(dataframe) * 1.5)
+    plt.grid(True)
+    #labels
+    plt.yticks(stylefile.defaultypos, stylefile.defaultylab)
+    xtick_positions = [0, 25, 50, 75, 100]  
+    xtick_labels = ['0', '25', '50', '75', '100']
+    plt.xticks(xtick_positions, xtick_labels)  
+    plt.xlabel('Exceedance Probability (%)')
+    plt.ylabel('Flow Rate (cfs)')
+    plt.title('Flow Duration Curve')
+    
+   #quartile lines
+    plt.hlines(q1, xmin=0, xmax=75, colors='y', linestyles='--', label='Q1')
+    plt.vlines(75, ymin=0, ymax=q1, colors='y', linestyles='--', label='Q2 (Median)')
+    
+    plt.vlines(50, ymin=0, ymax=q2, colors='g', linestyles='--', label='Q2 (Median)')
+    plt.hlines(q2, xmin=0, xmax=50, colors='g', linestyles='--', label='Q2 (Median)')
+
+    plt.vlines(25, ymin=0, ymax=q3, colors='b', linestyles='--', label='Q2 (Median)')
+    plt.hlines(q3, xmin=0, xmax=25, colors='b', linestyles='--', label='Q3')
+
+
+    plt.show()
+
+fdc(df, flowColumn)
+
 
 #Making graphs for Days within certain ranges
 for r in ranges:
@@ -293,7 +336,6 @@ for r in ranges:
         print("Make basic style")
 
     #plt.legend(handles=style.legend_entries, bbox_to_anchor=(0.5, -0.2), loc='upper center', ncol=2)
-    
 
     plt.show()
 
