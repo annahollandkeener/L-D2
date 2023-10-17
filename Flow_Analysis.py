@@ -199,8 +199,8 @@ while i < (len(df[flowColumn])):
         dictName = "range" + str(r[0]) + "_" + str(r[1])
         dfRangeName = dictName + "df"
 
-        if df[flowColumn][i] >= r[0]:
-            if df[flowColumn][i] >= r[0] and df[flowColumn][i] <= r[1]:
+        if int(df[flowColumn][i]) >= int(r[0]):
+            if df[flowColumn][i] >= int(r[0]) and df[flowColumn][i] <= int(r[1]):
                 new_row = {'Day': df['Day'][i], 'Flow': df[flowColumn][i]}
                 rangeDataFrames[dfRangeName] = pd.concat([rangeDataFrames[dfRangeName], pd.DataFrame([new_row])], ignore_index=True)
                 break
@@ -327,15 +327,15 @@ for r in ranges:
     #Limits and limit labels
     plt.xlim(1, 366)
     plt.xticks(stylefile.xtick_positions, stylefile.xtick_labels)
-    plt.ylim(0, r[1] * 1.5)
+    plt.ylim(0, int(r[1]) * 1.25)
 
     #Theme 
     if color == 'month colors':
         stylefile.monthColors(plt)
+        plt.legend(handles=stylefile.monthLegend, bbox_to_anchor=(0.5, -0.2), loc='upper center', ncol=2)
+
     else:
         print("Make basic style")
-
-    #plt.legend(handles=style.legend_entries, bbox_to_anchor=(0.5, -0.2), loc='upper center', ncol=2)
 
     plt.show()
 
