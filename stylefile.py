@@ -36,5 +36,7 @@ def monthColors(plot):
 defaultypos = [1500, 3500, 7500, 10000]  # Define the Y-axis tick positions
 defaultylab = ['1500', '3500', '7500', '10000']  # Define the labels for the tick positions
 
-xtick_positions = [1, 31, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335]  # Define the Y-axis tick positions
-xtick_labels = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12']  # Define the labels for the tick positions
+xtick_positions = [0, 31, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335, 365]  # Define the Y-axis tick positions
+xtick_labels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec', 'Jan']  # Define the labels for the tick positions
+
+############################################ GRAPH CREATION ############################################

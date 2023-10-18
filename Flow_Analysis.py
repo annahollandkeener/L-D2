@@ -2,8 +2,8 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 
-
 import stylefile
+
 
 
 #CSV variables to remember
@@ -153,8 +153,8 @@ for t in ranges:
     print(t)
 
 while True:
-    colors = ['basic', 'month colors']
-    color = input("\nPlease select display option: 'basic' or 'month colors': ")
+    colors = ['basic', 'spectral']
+    color = input("\nPlease select display option ('basic' or 'spectral'): ")
 
     if color in colors:
         break
@@ -260,8 +260,10 @@ for r in ranges:
     rangeDFName = "range" + str(r[0]) + "_" + str(r[1]) + "df"
     instDataFrames[instDFName] = flow_duration(rangeDFName, instDFName)
 
+    
 #Flow Duration Curve Function and Graph Creation
 def fdc(dataframe, flows):
+
     #Calculating probabilities for each flow 
     sortedFlows = sorted(dataframe[flows], reverse=True)
     n = len(sortedFlows)
@@ -279,12 +281,13 @@ def fdc(dataframe, flows):
     #Graph Creation
     plt.figure(figsize=(8, 6))
     plt.plot(exceedance_prob, sortedFlows, linestyle='-', color='red')
+
     #limits
     plt.xlim(0, 100)
-    plt.ylim(0, len(dataframe) * 1.5)
+    plt.ylim(0, int(dataframe[flowColumn].max()))
     plt.grid(True)
+
     #labels
-    plt.yticks(stylefile.defaultypos, stylefile.defaultylab)
     xtick_positions = [0, 25, 50, 75, 100]  
     xtick_labels = ['0', '25', '50', '75', '100']
     plt.xticks(xtick_positions, xtick_labels)  
@@ -295,50 +298,95 @@ def fdc(dataframe, flows):
    #quartile lines
     plt.hlines(q1, xmin=0, xmax=75, colors='y', linestyles='--', label='Q1')
     plt.vlines(75, ymin=0, ymax=q1, colors='y', linestyles='--', label='Q2 (Median)')
+    plt.text(90, q1, "q1 = " + str(q1), fontsize=7, ha='center')
     
     plt.vlines(50, ymin=0, ymax=q2, colors='g', linestyles='--', label='Q2 (Median)')
     plt.hlines(q2, xmin=0, xmax=50, colors='g', linestyles='--', label='Q2 (Median)')
+    plt.text(65, q2, "q2 = " + str(q2), fontsize=7, ha='center')
 
     plt.vlines(25, ymin=0, ymax=q3, colors='b', linestyles='--', label='Q2 (Median)')
     plt.hlines(q3, xmin=0, xmax=25, colors='b', linestyles='--', label='Q3')
-
+    plt.text(40, q3, "q3 = " + str(q3), fontsize=7, ha='center')
 
     plt.show()
-
-fdc(df, flowColumn)
 
 
 #Making graphs for Days within certain ranges
-for r in ranges:
-    rangeDFName = "range" + str(r[0]) + "_" + str(r[1]) + "df"
-    rangeDF = rangeDataFrames[rangeDFName]
+def rangeGraph():
+    for r in ranges:
+        rangeDFName = "range" + str(r[0]) + "_" + str(r[1]) + "df"
+        rangeDF = rangeDataFrames[rangeDFName]
 
-    #defining plot size
+        #defining plot size
+        plt.figure(figsize=(8, 6))
+
+        #defining plot type
+        if color == 'spectral':
+            var = 'black'
+        else:
+            var = 'red'
+        
+        plt.scatter(rangeDF['Day'], rangeDF['Flow'], color=var, linestyle='None', zorder=2, marker='o', edgecolor='white', s=90)
+
+        #Labels
+        plt.title("Days Within Flow Rate " + str(r[0]) + " - " + str(r[1]) + " (2013-2023)")
+        plt.xlabel("Month")
+        plt.ylabel("Flow Rate (cfs)")
+
+        #Limits and limit labels
+        plt.xlim(1, 366)
+        plt.xticks(stylefile.xtick_positions, stylefile.xtick_labels)
+        plt.ylim(0, int(r[1]) * 1.25)
+
+        #Theme 
+        if color == 'spectral':
+            stylefile.monthColors(plt)
+            plt.legend(handles=stylefile.monthLegend, bbox_to_anchor=(0.5, -0.2), loc='upper center', ncol=2)
+
+        plt.show()
+
+
+#Average Daily Flow Over a Year Graph Display
+def avgDailyFlow(): 
     plt.figure(figsize=(8, 6))
+    
+     #Theme 
+    if color == 'spectral':
+        stylefile.monthColors(plt)
+        var = 'gray'
+    else: 
+        var = "red"
 
-    #defining plot type
-    plt.scatter(rangeDF['Day'], rangeDF['Flow'], color='black', linestyle='None', zorder=2, marker='o', edgecolor='white', s=90)
-
-    #Labels
-    plt.title("Days within Flow Rate " + str(r[0]) + " - " + str(r[1]) + " (2013-2023)")
-    plt.xlabel("Day")
+    plt.plot(df["Day"], df["MF"], color=var, zorder = 2, marker = 'o', markerfacecolor = 'black', markeredgecolor = "white", linestyle = '-')
+    plt.title("Average Daily Flow Rate Over a Year (2013-2023)")
+    plt.xlabel("Month")
     plt.ylabel("Flow Rate (cfs)")
 
-    #Limits and limit labels
-    plt.xlim(1, 366)
     plt.xticks(stylefile.xtick_positions, stylefile.xtick_labels)
-    plt.ylim(0, int(r[1]) * 1.25)
 
-    #Theme 
-    if color == 'month colors':
-        stylefile.monthColors(plt)
-        plt.legend(handles=stylefile.monthLegend, bbox_to_anchor=(0.5, -0.2), loc='upper center', ncol=2)
+    plt.axhline(y=1500, color='white', linestyle='--', label='Horizontal Line at y=0', zorder=1)
+    plt.axhline(y=3500, color='white', linestyle='--', label='Horizontal Line at y=0', zorder = 1)
+    plt.axhline(y=7500, color='white', linestyle='--', label='Horizontal Line at y=0', zorder = 1)
+    plt.axhline(y=10000, color='white', linestyle='--', label='Horizontal Line at y=0', zorder = 1)
 
-    else:
-        print("Make basic style")
+    plt.xlim(0, 365)
+    plt.ylim(0, int(df[flowColumn].max()) * 1.1)
+
+    plt.legend(handles=stylefile.monthLegend, bbox_to_anchor=(0.5, -0.2), loc='upper center', ncol=2)
 
     plt.show()
 
+
+
+
+#Flow Duration Graph Creation
+fdc(df, flowColumn)
+
+#Average Daily Flow Over a Year Graph Creation
+avgDailyFlow()
+
+#Range Graph Creation for Each Range
+rangeGraph()
 
 
 
