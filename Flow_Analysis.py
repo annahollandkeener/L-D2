@@ -2,7 +2,9 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 
+
 import stylefile
+
 
 #CSV variables to remember
 file = ''
@@ -11,7 +13,9 @@ dayColumn = ''
 df = ''
 
 print("\n------------Flow Analysis------------\n")
+#Manual data entry mode
 '''
+
 #Remembering if user wants the flow duration curve chart included or not
 while True:
     flowDurationCurve = input("Flow duration curve? (y/n): ")
@@ -20,7 +24,8 @@ while True:
     elif flowDurationCurve == 'n':
         break
     else:
-        print("*** Invalid input ***")
+
+        print("***Invalid input***")
 
 #Remembering if user wants the instance duration charts included or not
 while True:
@@ -30,8 +35,9 @@ while True:
     elif instanceClass == 'n':
         break
     else:
-        print("*** Invalid input ***")       
-'''
+        print("***Invalid input***")     
+    '''  
+
 
 #Requesting file from user until viable file provided
 while True:
@@ -42,7 +48,7 @@ while True:
         df = pd.DataFrame(data)
         break
     except FileNotFoundError:
-        print("\n*** Error reading the CSV file. \nMake sure it is spelled correctly and in the same directory as this executable ***")
+        print("\n***Error reading the CSV file*** \n(Make sure it is spelled correctly and in the same directory as this executable if not using relative/direct path.)")
 
     
 #Collecting details on csv
@@ -52,7 +58,11 @@ while True:
         print("Column '" + flowColumn + "' selected.")
         break
     else:
-        print("\n*** This is not a column in the given csv ***")
+        print("\n***This is not a column in the given csv***")
+        print("\nColumns in the csv: ")
+        for column in df.columns:
+            print("'" + column + "'")
+
 
 while True:
     dayColumn = input("\nEnter name of the time column (units in days, be mindful of capital letters): ")
@@ -60,7 +70,10 @@ while True:
         print("Column '" + dayColumn + "' selected.")
         break
     else:
-        print("\n*** This is not a column in the given csv ***")
+        print("\n***This is not a column in the given csv***")
+        print("\nColumns in the csv: ")
+        for column in df.columns:
+            print("'" + column + "'")
 
 
 #Prompting the user to decide between default ranges and unique ranges
@@ -131,6 +144,7 @@ if specify == 'y':
                     print("Invalid input.")
 else:
     #ranges will be set to defaults
+    print("Ranges will be set to defaults.")
     ranges = [(0,1500), (1500,3500), (3500, 7500), (7500, 10000), (10000, 50000)]
 
 #print ranges
@@ -152,6 +166,10 @@ while True:
 print("\nWorking...")
 
 
+
+#Creating a dictionary to store dataframes. 
+rangeDataFrames = {}
+
 #Creating a dictionary to store dataframes. Range dataframe can be accessed by range#_#df
 rangeDataFrames = {}
 
@@ -167,6 +185,13 @@ for r in ranges:
     rangeDataFrames[dfRangeName] = dfRange
 
 
+#New row function
+x = 0
+def new_row(dataFrame, flow):
+    new_row = {'Day': df['Day'][x], 'Flow': flow}
+    return new_row
+
+
 #Sorting all of the flows in the flow column into specified ranges
 i = 0
 while i < (len(df[flowColumn])):
@@ -174,8 +199,8 @@ while i < (len(df[flowColumn])):
         dictName = "range" + str(r[0]) + "_" + str(r[1])
         dfRangeName = dictName + "df"
 
-        if df[flowColumn][i] >= r[0]:
-            if df[flowColumn][i] >= r[0] and df[flowColumn][i] <= r[1]:
+        if int(df[flowColumn][i]) >= int(r[0]):
+            if df[flowColumn][i] >= int(r[0]) and df[flowColumn][i] <= int(r[1]):
                 new_row = {'Day': df['Day'][i], 'Flow': df[flowColumn][i]}
                 rangeDataFrames[dfRangeName] = pd.concat([rangeDataFrames[dfRangeName], pd.DataFrame([new_row])], ignore_index=True)
                 break
@@ -235,6 +260,53 @@ for r in ranges:
     rangeDFName = "range" + str(r[0]) + "_" + str(r[1]) + "df"
     instDataFrames[instDFName] = flow_duration(rangeDFName, instDFName)
 
+#Flow Duration Curve Function and Graph Creation
+def fdc(dataframe, flows):
+    #Calculating probabilities for each flow 
+    sortedFlows = sorted(dataframe[flows], reverse=True)
+    n = len(sortedFlows)
+    exceedance_prob = np.arange(1, n + 1) / (n + 1) * 100
+
+    data = dataframe[flows] 
+    x = range(len(data))  
+    y = data  
+
+    #Quartile Calculations
+    q1 = np.percentile(data, 25)
+    q2 = np.percentile(data, 50)
+    q3 = np.percentile(data, 75)    
+
+    #Graph Creation
+    plt.figure(figsize=(8, 6))
+    plt.plot(exceedance_prob, sortedFlows, linestyle='-', color='red')
+    #limits
+    plt.xlim(0, 100)
+    plt.ylim(0, len(dataframe) * 1.5)
+    plt.grid(True)
+    #labels
+    plt.yticks(stylefile.defaultypos, stylefile.defaultylab)
+    xtick_positions = [0, 25, 50, 75, 100]  
+    xtick_labels = ['0', '25', '50', '75', '100']
+    plt.xticks(xtick_positions, xtick_labels)  
+    plt.xlabel('Exceedance Probability (%)')
+    plt.ylabel('Flow Rate (cfs)')
+    plt.title('Flow Duration Curve')
+    
+   #quartile lines
+    plt.hlines(q1, xmin=0, xmax=75, colors='y', linestyles='--', label='Q1')
+    plt.vlines(75, ymin=0, ymax=q1, colors='y', linestyles='--', label='Q2 (Median)')
+    
+    plt.vlines(50, ymin=0, ymax=q2, colors='g', linestyles='--', label='Q2 (Median)')
+    plt.hlines(q2, xmin=0, xmax=50, colors='g', linestyles='--', label='Q2 (Median)')
+
+    plt.vlines(25, ymin=0, ymax=q3, colors='b', linestyles='--', label='Q2 (Median)')
+    plt.hlines(q3, xmin=0, xmax=25, colors='b', linestyles='--', label='Q3')
+
+
+    plt.show()
+
+fdc(df, flowColumn)
+
 
 #Making graphs for Days within certain ranges
 for r in ranges:
@@ -255,18 +327,18 @@ for r in ranges:
     #Limits and limit labels
     plt.xlim(1, 366)
     plt.xticks(stylefile.xtick_positions, stylefile.xtick_labels)
-    plt.ylim(0, r[1] * 1.5)
+    plt.ylim(0, int(r[1]) * 1.25)
 
     #Theme 
     if color == 'month colors':
         stylefile.monthColors(plt)
+        plt.legend(handles=stylefile.monthLegend, bbox_to_anchor=(0.5, -0.2), loc='upper center', ncol=2)
+
     else:
         print("Make basic style")
 
-    #plt.legend(handles=style.legend_entries, bbox_to_anchor=(0.5, -0.2), loc='upper center', ncol=2)
-    
-
     plt.show()
+
 
 
 
