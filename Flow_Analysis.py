@@ -167,8 +167,6 @@ print("\nWorking...")
 
 
 
-#Creating a dictionary to store dataframes. 
-rangeDataFrames = {}
 
 #Creating a dictionary to store dataframes. Range dataframe can be accessed by range#_#df
 rangeDataFrames = {}
@@ -260,7 +258,27 @@ for r in ranges:
     rangeDFName = "range" + str(r[0]) + "_" + str(r[1]) + "df"
     instDataFrames[instDFName] = flow_duration(rangeDFName, instDFName)
 
+#Creating a dictionary to store instance dataframes. Instance dataframe can be accessed by instances#_#
+tupleLists = {}
+
+#Tuple creation for consecutive days
+for r in ranges:
+    listName = "tuples" + str(r[0]) + "_" + str(r[1])
+    tupleList = []
     
+
+    instDFName = "instances" + str(r[0]) + "_" + str(r[1])
+    inst = instDataFrames[instDFName]
+
+    for i in range(len(inst)):
+        new_tuple = (inst['dayStart'][i], inst['dayStart'][i] + inst['duration'][i])
+        tupleList.append(new_tuple)
+    
+    tupleLists[listName] = tupleList
+    
+
+################ GRAPHS ################ 
+
 #Flow Duration Curve Function and Graph Creation
 def fdc(dataframe, flows):
 
@@ -308,6 +326,14 @@ def fdc(dataframe, flows):
     plt.hlines(q3, xmin=0, xmax=25, colors='b', linestyles='--', label='Q3')
     plt.text(40, q3, "q3 = " + str(q3), fontsize=7, ha='center')
 
+    #legend
+    plt.subplots_adjust(bottom=0.2) 
+    stylefile.legend_entries.append(plt.Line2D([0], [0], color='y', label='q1', linestyle = '--'))
+    stylefile.legend_entries.append(plt.Line2D([0], [0], color='g', label='q2', linestyle = '--'))
+    stylefile.legend_entries.append(plt.Line2D([0], [0], color='b', label='q3', linestyle = '--'))
+    
+    plt.legend(handles=stylefile.legend_entries, bbox_to_anchor=(0.5, -.15), loc='upper center', ncol=3)
+
     plt.show()
 
 
@@ -322,6 +348,7 @@ def rangeGraph():
 
         #defining plot type
         if color == 'spectral':
+            stylefile.monthColors(plt)
             var = 'black'
         else:
             var = 'red'
@@ -338,10 +365,10 @@ def rangeGraph():
         plt.xticks(stylefile.xtick_positions, stylefile.xtick_labels)
         plt.ylim(0, int(r[1]) * 1.25)
 
-        #Theme 
-        if color == 'spectral':
-            stylefile.monthColors(plt)
-            plt.legend(handles=stylefile.monthLegend, bbox_to_anchor=(0.5, -0.2), loc='upper center', ncol=2)
+        #legend
+        stylefile.legend_entries.append(plt.Line2D([0], [0], color=var, label='Day', marker = 'o'))
+        plt.subplots_adjust(bottom=0.2) 
+        plt.legend(handles=stylefile.legend_entries, bbox_to_anchor=(0.5, -.15), loc='upper center', ncol=2)
 
         plt.show()
 
@@ -377,46 +404,143 @@ def avgDailyFlow():
     plt.ylim(0, int(df[flowColumn].max()) * 1.1)
 
     #legend
-    plt.legend(handles=stylefile.monthLegend, bbox_to_anchor=(0.5, -0.2), loc='upper center', ncol=2)
+    stylefile.legend_entries.append(plt.Line2D([0], [0], color='black', label='Day', marker = 'o'))
+    plt.subplots_adjust(bottom=0.2) 
+    plt.legend(handles=stylefile.legend_entries, bbox_to_anchor=(0.5, -.15), loc='upper center', ncol=2)
 
     plt.show()
 
 #Bar Chart Duration Graph Function
 def instanceBar():
-    for i in instDataFrames:
+    for r in ranges:
+        instanceDFName = "instances" + str(r[0]) + "_" + str(r[1]) 
+        instanceDF = instDataFrames[instanceDFName]
+
+        plt.figure(figsize=(8, 6))
+        
+         #Theme 
+        if color == 'spectral':
+            stylefile.monthColors(plt)
+            var = 'black'
+        else: 
+            var = "red"
+
         #Creation of bar graph
-        plt.bar(i['dayStart'], i['duration'], zorder = 2, color = 'black')
+        plt.bar(instanceDF['dayStart'], instanceDF['duration'], zorder = 2, color = var)
+
 
         #labels
-        plt.title("Instance Durations 0-1500 cfs")
+        plt.title("Days Within Flow Rate " + str(r[0]) + " - " + str(r[1]) + " (2013-2023)")
+        plt.title("Instance Durations Within " + str(r[0]) + " - " + str(r[1]) + " cfs (2013-2023)")
         plt.xlabel("Start Day")
         plt.ylabel("Duration (days)")
         plt.xticks(stylefile.xtick_positions, stylefile.xtick_labels)
 
         #limits
         plt.xlim(0, 366)
-        plt.ylim(0, 30)
-     
-        #theme
-        stylefile.monthColors(plt)
+        plt.ylim(0, instanceDF['duration'].max() * 1.15)
 
         #legend
-        plt.legend(handles=stylefile.monthLegend, bbox_to_anchor=(0.5, -0.2), loc='upper center', ncol=2)
+        
+
         plt.show()
+
+#Flow Instance Duration Graph Creation
+def allInstDur():
     
+    #Plot creation
+    #fig, ax = plt.subplots()
+    plt.figure(figsize = (15, 6))
+    
+    #Theme 
+    if color == 'spectral':
+        stylefile.monthColors(plt)
+        var = 'black'
+    else: 
+        var = "red"
+
+    #Making lines based on start and end of each flow instance
+    for r in ranges:
+        tupleListName = "tuples" + str(r[0]) + "_" + str(r[1])
+        rangeName = str(r[0]) + " - " + str(r[1])
+
+        for tup in tupleLists[tupleListName]:
+            plt.hlines(y=[rangeName], xmin=tup[0], xmax=tup[1], color=var, linewidth=8)
+
+    #limits
+    plt.xlim(1, 366)
+
+    #labels
+    plt.title("Duration of Flow at Different Rates")
+    plt.xlabel("Day")
+    plt.ylabel("Flow (cfs)")
+    plt.xticks(stylefile.xtick_positions, stylefile.xtick_labels)
+    
+    #legend
+    stylefile.legend_entries.append(plt.Line2D([0], [0], color=var, label='Period of Consecutive Days', linewidth=8, linestyle='-'))
+    plt.subplots_adjust(bottom=0.2) 
+    plt.legend(handles=stylefile.legend_entries, bbox_to_anchor=(0.5, -.15), loc='upper center', ncol=2)
+   
+    plt.show()
+
+#First Derivative Graph
+def derivativePlot():
+    x_data = df[dayColumn]
+    y_data = df[flowColumn]
+
+    # Calculate the first derivative using np.gradient()
+    y_derivative = np.gradient(y_data, x_data)
+
+    # Create a graph to plot the first derivative
+    plt.figure(figsize=(8, 6))
+
+    #Theme 
+    if color == 'spectral':
+        stylefile.monthColors(plt)
+
+    # Plot the original data
+    plt.plot(x_data, y_data, label='Original Data', color='black', linestyle = '-')
+    plt.xlim(1, 366)
+    plt.xticks(stylefile.xtick_positions, stylefile.xtick_labels)
+    plt.title('Rate of Change of Flow Over Time')
+    plt.xlabel('Month')
+    plt.ylabel("Rate of Change (cfs)")
+    plt.axhline(y=0, color='gray', linestyle='--', zorder=1)
+
+
+    # Plot the first derivative
+    plt.plot(x_data, y_derivative, label='First Derivative', color='red', linestyle = '-')
+
+    #legend
+    stylefile.legend_entries.append(plt.Line2D([0], [0], color='black', label='Original', markersize=15, linestyle='-'))
+    stylefile.legend_entries.append(plt.Line2D([0], [0], color='red', label='Rate of Change (1st Derivative)', markersize=15, linestyle='-'))
+    plt.legend(handles=stylefile.legend_entries, bbox_to_anchor=(0.5, .08), loc='upper center', ncol=2)
+
+    plt.show()
+
+
+
 
 
 #Flow Duration Graph Creation
 fdc(df, flowColumn)
 
 #Average Daily Flow Over a Year Graph Creation
-avgDailyFlow()
+#avgDailyFlow()
 
 #Range Graph Creation for Each Range
-rangeGraph()
+#rangeGraph()
+
 
 #Bar Chart Duration Graph Creation
-instanceBar()
+#instanceBar()
 
 
+#Flow Instance Duration Graph Creation
+#allInstDur()
 
+
+#First Derivative Graph Creation
+#derivativePlot()
+
+print("\nDone!\n")

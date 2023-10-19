@@ -18,6 +18,9 @@ monthLegend = [
     plt.Line2D([0], [0], marker='s', color='#b6abcc', label='December', markersize=15, linestyle='None'),
 
 ]
+
+legend_entries = []
+
 def monthColors(plot):
     plt.axvspan(1, 31, facecolor='lightblue', alpha=0.5) #jan
     plt.axvspan(31, 60, facecolor="#a5d6c5", alpha=.5) #feb
@@ -36,7 +39,7 @@ def monthColors(plot):
 defaultypos = [1500, 3500, 7500, 10000]  # Define the Y-axis tick positions
 defaultylab = ['1500', '3500', '7500', '10000']  # Define the labels for the tick positions
 
-xtick_positions = [0, 31, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335, 365]  # Define the Y-axis tick positions
+xtick_positions = [0, 31, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335, 366]  # Define the Y-axis tick positions
 xtick_labels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec', 'Jan']  # Define the labels for the tick positions
 
 ############################################ GRAPH CREATION ############################################
