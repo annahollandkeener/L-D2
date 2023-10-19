@@ -279,6 +279,19 @@ for r in ranges:
     
 
 ################ GRAPHS ################ 
+#Adding a folder to hold the graphs
+new_folder_name = "Graphs"
+count = 0
+
+while True:
+    # Check if the directory exists
+    if not os.path.exists(new_folder_name):
+        # If it doesn't exist, create the new directory
+        os.mkdir(new_folder_name)
+        break
+    else:
+        count += 1
+        new_folder_name = "Graphs (" + str(count) + ")"
 
 #Flow Duration Curve Function and Graph Creation
 def fdc(dataframe, flows):
@@ -328,15 +341,18 @@ def fdc(dataframe, flows):
     plt.text(40, q3, "q3 = " + str(q3), fontsize=7, ha='center')
 
     #legend
+    legend_entries = []
     plt.subplots_adjust(bottom=0.2) 
-    stylefile.legend_entries.append(plt.Line2D([0], [0], color='y', label='q1', linestyle = '--'))
-    stylefile.legend_entries.append(plt.Line2D([0], [0], color='g', label='q2', linestyle = '--'))
-    stylefile.legend_entries.append(plt.Line2D([0], [0], color='b', label='q3', linestyle = '--'))
+    legend_entries.append(plt.Line2D([0], [0], color='y', label='q1', linestyle = '--'))
+    legend_entries.append(plt.Line2D([0], [0], color='g', label='q2', linestyle = '--'))
+    legend_entries.append(plt.Line2D([0], [0], color='b', label='q3', linestyle = '--'))
     
-    plt.legend(handles=stylefile.legend_entries, bbox_to_anchor=(0.5, -.15), loc='upper center', ncol=3)
+    plt.legend(handles=legend_entries, bbox_to_anchor=(0.5, -.15), loc='upper center', ncol=3)
+
+    plot_filename = os.path.join(new_folder_name, "Flow Duration.png")
+    plt.savefig(plot_filename)
 
     plt.show()
-
 
 #Making graphs for Days within certain ranges
 def rangeGraph():
@@ -367,9 +383,13 @@ def rangeGraph():
         plt.ylim(0, int(r[1]) * 1.25)
 
         #legend
-        stylefile.legend_entries.append(plt.Line2D([0], [0], color=var, label='Day', marker = 'o'))
+        legend_entries = []
+        legend_entries.append(plt.Line2D([0], [0], color=var, label='Day', marker = 'o'))
         plt.subplots_adjust(bottom=0.2) 
-        plt.legend(handles=stylefile.legend_entries, bbox_to_anchor=(0.5, -.15), loc='upper center', ncol=2)
+        plt.legend(handles=legend_entries, bbox_to_anchor=(0.5, -.15), loc='upper center', ncol=2)
+
+        plot_filename = os.path.join(new_folder_name, "Range " + str(r[0]) + " - " + str(r[1]) + ".png")
+        plt.savefig(plot_filename)
 
         plt.show()
 
@@ -405,9 +425,13 @@ def avgDailyFlow():
     plt.ylim(0, int(df[flowColumn].max()) * 1.1)
 
     #legend
-    stylefile.legend_entries.append(plt.Line2D([0], [0], color='black', label='Day', marker = 'o'))
+    legend_entries = []
+    legend_entries.append(plt.Line2D([0], [0], color='black', label='Day', marker = 'o'))
     plt.subplots_adjust(bottom=0.2) 
-    plt.legend(handles=stylefile.legend_entries, bbox_to_anchor=(0.5, -.15), loc='upper center', ncol=2)
+    plt.legend(handles=legend_entries, bbox_to_anchor=(0.5, -.15), loc='upper center', ncol=2)
+
+    plot_filename = os.path.join(new_folder_name, "Average Daily Flow.png")
+    plt.savefig(plot_filename)
 
     plt.show()
 
@@ -443,7 +467,8 @@ def instanceBar():
 
         #legend
         
-
+        plot_filename = os.path.join(new_folder_name, "Instance Bar: " + str(r[0]) + " - " + str(r[1]) + ".png")
+        plt.savefig(plot_filename)
         plt.show()
 
 #Flow Instance Duration Graph Creation
@@ -478,10 +503,13 @@ def allInstDur():
     plt.xticks(stylefile.xtick_positions, stylefile.xtick_labels)
     
     #legend
-    stylefile.legend_entries.append(plt.Line2D([0], [0], color=var, label='Period of Consecutive Days', linewidth=8, linestyle='-'))
+    legend_entries = []
+    legend_entries.append(plt.Line2D([0], [0], color=var, label='Period of Consecutive Days', linewidth=8, linestyle='-'))
     plt.subplots_adjust(bottom=0.2) 
-    plt.legend(handles=stylefile.legend_entries, bbox_to_anchor=(0.5, -.15), loc='upper center', ncol=2)
+    plt.legend(handles=legend_entries, bbox_to_anchor=(0.5, -.15), loc='upper center', ncol=2)
    
+    plot_filename = os.path.join(new_folder_name, "All Instance Durations.png")
+    plt.savefig(plot_filename)
     plt.show()
 
 #First Derivative Graph
@@ -513,52 +541,36 @@ def derivativePlot():
     plt.plot(x_data, y_derivative, label='First Derivative', color='red', linestyle = '-')
 
     #legend
-    stylefile.legend_entries.append(plt.Line2D([0], [0], color='black', label='Original', markersize=15, linestyle='-'))
-    stylefile.legend_entries.append(plt.Line2D([0], [0], color='red', label='Rate of Change (1st Derivative)', markersize=15, linestyle='-'))
-    plt.legend(handles=stylefile.legend_entries, bbox_to_anchor=(0.5, .08), loc='upper center', ncol=2)
+    legend_entries = []
+    legend_entries.append(plt.Line2D([0], [0], color='black', label='Original', markersize=15, linestyle='-'))
+    legend_entries.append(plt.Line2D([0], [0], color='red', label='Rate of Change (1st Derivative)', markersize=15, linestyle='-'))
+    plt.subplots_adjust(bottom=0.2) 
+    plt.legend(handles=legend_entries, bbox_to_anchor=(0.5, -.15), loc='upper center', ncol=3)
 
+    plot_filename = os.path.join(new_folder_name, "First Derivative.png")
+    plt.savefig(plot_filename)
     plt.show()
-
-
-
-
-new_folder_name = "Graphs"
-count = 0
-
-while True:
-    # Check if the directory exists
-    if not os.path.exists(new_folder_name):
-        # If it doesn't exist, create the new directory
-        os.mkdir(new_folder_name)
-        break
-    else:
-        count += 1
-        new_folder_name = "Graphs (" + count + ")"
-        
-
 
 #Flow Duration Graph Creation
 fdc(df, flowColumn)
-plot_filename = os.path.join(new_folder_name, "Flow Duration Graph.png")
-plt.savefig(plot_filename)
 
 
 #Average Daily Flow Over a Year Graph Creation
-#avgDailyFlow()
+avgDailyFlow()
 
 #Range Graph Creation for Each Range
-#rangeGraph()
+rangeGraph()
 
 
 #Bar Chart Duration Graph Creation
-#instanceBar()
+instanceBar()
 
 
 #Flow Instance Duration Graph Creation
-#allInstDur()
+allInstDur()
 
 
 #First Derivative Graph Creation
-#derivativePlot()
+derivativePlot()
 
 print("\nDone!\n")
