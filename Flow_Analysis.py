@@ -1,6 +1,7 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
+import os
 
 import stylefile
 
@@ -521,9 +522,26 @@ def derivativePlot():
 
 
 
+new_folder_name = "Graphs"
+count = 0
+
+while True:
+    # Check if the directory exists
+    if not os.path.exists(new_folder_name):
+        # If it doesn't exist, create the new directory
+        os.mkdir(new_folder_name)
+        break
+    else:
+        count += 1
+        new_folder_name = "Graphs (" + count + ")"
+        
+
 
 #Flow Duration Graph Creation
 fdc(df, flowColumn)
+plot_filename = os.path.join(new_folder_name, "Flow Duration Graph.png")
+plt.savefig(plot_filename)
+
 
 #Average Daily Flow Over a Year Graph Creation
 #avgDailyFlow()
