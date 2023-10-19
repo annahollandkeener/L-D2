@@ -348,6 +348,7 @@ def rangeGraph():
 
 #Average Daily Flow Over a Year Graph Display
 def avgDailyFlow(): 
+    #Graph cration
     plt.figure(figsize=(8, 6))
     
      #Theme 
@@ -357,26 +358,52 @@ def avgDailyFlow():
     else: 
         var = "red"
 
+    #Data definition
     plt.plot(df["Day"], df["MF"], color=var, zorder = 2, marker = 'o', markerfacecolor = 'black', markeredgecolor = "white", linestyle = '-')
+    
+    #Labels
     plt.title("Average Daily Flow Rate Over a Year (2013-2023)")
     plt.xlabel("Month")
     plt.ylabel("Flow Rate (cfs)")
-
     plt.xticks(stylefile.xtick_positions, stylefile.xtick_labels)
 
-    plt.axhline(y=1500, color='white', linestyle='--', label='Horizontal Line at y=0', zorder=1)
-    plt.axhline(y=3500, color='white', linestyle='--', label='Horizontal Line at y=0', zorder = 1)
-    plt.axhline(y=7500, color='white', linestyle='--', label='Horizontal Line at y=0', zorder = 1)
-    plt.axhline(y=10000, color='white', linestyle='--', label='Horizontal Line at y=0', zorder = 1)
-
+    #Adding lines at ranges
+    for r in ranges:
+        plt.axhline(y=r[0], color='white', linestyle='--', label='Horizontal Line at y=0', zorder=1)
+        plt.axhline(y=r[1], color='white', linestyle='--', label='Horizontal Line at y=0', zorder = 1)
+   
+    #limits
     plt.xlim(0, 365)
     plt.ylim(0, int(df[flowColumn].max()) * 1.1)
 
+    #legend
     plt.legend(handles=stylefile.monthLegend, bbox_to_anchor=(0.5, -0.2), loc='upper center', ncol=2)
 
     plt.show()
 
+#Bar Chart Duration Graph Function
+def instanceBar():
+    for i in instDataFrames:
+        #Creation of bar graph
+        plt.bar(i['dayStart'], i['duration'], zorder = 2, color = 'black')
 
+        #labels
+        plt.title("Instance Durations 0-1500 cfs")
+        plt.xlabel("Start Day")
+        plt.ylabel("Duration (days)")
+        plt.xticks(stylefile.xtick_positions, stylefile.xtick_labels)
+
+        #limits
+        plt.xlim(0, 366)
+        plt.ylim(0, 30)
+     
+        #theme
+        stylefile.monthColors(plt)
+
+        #legend
+        plt.legend(handles=stylefile.monthLegend, bbox_to_anchor=(0.5, -0.2), loc='upper center', ncol=2)
+        plt.show()
+    
 
 
 #Flow Duration Graph Creation
@@ -387,6 +414,9 @@ avgDailyFlow()
 
 #Range Graph Creation for Each Range
 rangeGraph()
+
+#Bar Chart Duration Graph Creation
+instanceBar()
 
 
 
