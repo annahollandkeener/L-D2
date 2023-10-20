@@ -27,7 +27,7 @@ while True:
         print("\nUSGS mode selected.")
         mode = response.lower()
     else:
-        "Invalid input."
+        print("\nInvalid input.")
 
 if mode == 'manual':
     file_name = 'Flow_Analysis.py'
