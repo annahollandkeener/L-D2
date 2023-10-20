@@ -5,15 +5,37 @@ import os
 
 import stylefile
 
-
-
 #CSV variables to remember
 file = ''
 flowColumn = ''
 dayColumn = ''
 df = ''
 
-print("\n------------Flow Analysis------------\n")
+types = ['flow', 'elevation']
+dataType = ''
+
+while True: 
+    print("\nData Types Expected")
+    print("------------")
+    for t in types:
+        print("|'" + t + "'")
+    print("------------")
+    print("\nType 'types' for a description of each mode.")
+
+    response = input("Select type: ")
+
+    if response.lower() == 'types':
+        print("\nDescription...")
+    elif response.lower() == 'flow':
+        print("\nFlow data selected.")
+        dataType = response.lower()
+        break 
+    elif response.lower() == 'elevation':
+        print("\nElevation data selected.")
+        dataType = response.lower()
+    else:
+        "Invalid input."
+
 #Manual data entry mode
 '''
 
