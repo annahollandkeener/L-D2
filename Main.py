@@ -30,7 +30,7 @@ while True:
         print("\nInvalid input.")
 
 if mode == 'manual':
-    file_name = 'Flow_Analysis.py'
+    file_name = 'manual.py'
 elif mode == 'USGS':
     file_name = 'USGS'
     

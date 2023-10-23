@@ -3,6 +3,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import os
 import datetime
+from datetime import timedelta
+from dateutil.relativedelta import relativedelta
 
 import stylefile
 
@@ -34,6 +36,7 @@ while True:
     elif response.lower() == 'elevation':
         print("\nElevation data selected.")
         dataType = response.lower()
+        break
     else:
         "Invalid input."
 
@@ -63,17 +66,30 @@ while True:
         for column in df.columns:
             print("'" + column + "'")
 
+date_formats = ["%Y-%m-%d", "%d/%m/%Y", "%m/%d/%Y", "%Y%m%d", "%d-%m-%Y", "%Y/%m/%d"]
 
 while True:
     dayColumn = input("\nEnter name of the time column (be mindful of capital letters): ")
     if dayColumn in df.columns:
         print("Column '" + dayColumn + "' selected.")
-        break
+        for format in date_formats:
+            try:
+                df[dayColumn] = pd.to_datetime(df[dayColumn], format = format)
+                formatAccepted = True
+                break
+            except ValueError:
+                pass
+        if formatAccepted == True:
+            break
+        else:
+            print("***Error: This column is not in a recognized date format.***")
     else:
         print("\n***This is not a column in the given csv***")
         print("\nColumns in the csv: ")
         for column in df.columns:
             print("'" + column + "'")
+
+
 
 #Prompting the user to decide between default ranges and unique ranges
 print("\nDefault ranges are: 0-1500, 1500-3500, 3500-7500, 7500-10000, >10000")
@@ -225,7 +241,8 @@ def flow_duration(range, instance):
                 i = curr
                 return instanceDF
             else:
-                if (((rangeDF['Day'][nex]) - 1) == (rangeDF['Day'][curr])):
+                oneDay = timedelta(days=1)
+                if (((rangeDF['Day'][nex]) - oneDay) == (rangeDF['Day'][curr])):
                     consecutive = True
                     duration += 1
                     curr += 1
@@ -270,13 +287,38 @@ for r in ranges:
     inst = instDataFrames[instDFName]
 
     for i in range(len(inst)):
-        new_tuple = (inst['dayStart'][i], inst['dayStart'][i] + inst['duration'][i])
+        durationTime = timedelta(days= (inst['duration'][i]))
+        new_tuple = (inst['dayStart'][i], inst['dayStart'][i] + durationTime)
         tupleList.append(new_tuple)
     
     tupleLists[listName] = tupleList
     
 
 ################ GRAPHS ################ 
+months = []
+months.append(df[dayColumn][0])
+monthDate = df[dayColumn][0]
+
+oneMonth = relativedelta(months=1)
+
+for date in df[dayColumn]:
+    if date.month != monthDate.month:
+        months.append(date)
+        monthDate += oneMonth
+
+monthDate += oneMonth
+months.append(monthDate)
+
+monthLabels = []
+for m in months:
+    monthLabels.append(m.strftime("%b"))
+
+
+xtick_positions = months  # Define the Y-axis tick positions
+xtick_labels = monthLabels # Define the labels for the tick positions
+
+
+
 #Adding a folder to hold the graphs
 new_folder_name = "Graphs"
 count = 0
@@ -363,7 +405,18 @@ def rangeGraph():
 
         #defining plot type
         if color == 'spectral':
-            stylefile.monthColors(plt)
+            
+            i = 0
+            mColors = ['lightblue', "#a5d6c5", "#84ad89","#b0c27a","#f5f587","#e0b15a","#e89464","#b37659","#b06363","#f27c7c","#c086c4", "#b6abcc",]
+            startColor = months[i].month
+
+            while i < (len(months) - 1):
+                if i >= len(mColors) - 1:
+                    startColor = 0
+                plt.fill_between([months[i], months[i + 1]], y1 = 0, y2 = int(r[1]) * 1.25,  color=mColors[startColor], alpha=0.5)
+                i += 1
+                startColor += 1
+    
             var = 'black'
         else:
             var = 'red'
@@ -376,8 +429,8 @@ def rangeGraph():
         plt.ylabel("Flow Rate (cfs)")
 
         #Limits and limit labels
-        plt.xlim(1, 366)
-        plt.xticks(stylefile.xtick_positions, stylefile.xtick_labels)
+        plt.xlim(months[0], months[len(months) - 1])
+        plt.xticks(months, monthLabels)
         plt.ylim(0, int(r[1]) * 1.25)
 
         #legend
@@ -399,7 +452,17 @@ def avgDailyFlow():
     
      #Theme 
     if color == 'spectral':
-        stylefile.monthColors(plt)
+        i = 0
+        mColors = ['lightblue', "#a5d6c5", "#84ad89","#b0c27a","#f5f587","#e0b15a","#e89464","#b37659","#b06363","#f27c7c","#c086c4", "#b6abcc",]
+        startColor = months[i].month
+
+        while i < (len(months) - 1):
+            if i >= len(mColors) - 1:
+                startColor = 0
+            plt.fill_between([months[i], months[i + 1]], y1 = 0, y2 = int(ranges[len(ranges) - 1][1]) * 1.25,  color=mColors[startColor], alpha=0.5)
+            i += 1
+            startColor += 1
+            
         var = 'gray'
     else: 
         var = "red"
@@ -411,15 +474,28 @@ def avgDailyFlow():
     plt.title("Average Daily Flow Rate Over a Year (2013-2023)")
     plt.xlabel("Month")
     plt.ylabel("Flow Rate (cfs)")
-    plt.xticks(stylefile.xtick_positions, stylefile.xtick_labels)
+    plt.xticks(months, monthLabels)
+    yticks = []
+    ytickLabels = []
 
     #Adding lines at ranges
     for r in ranges:
         plt.axhline(y=r[0], color='white', linestyle='--', label='Horizontal Line at y=0', zorder=1)
+        yticks.append(r[0])
+        ytickLabels.append(str(r[0]))
         plt.axhline(y=r[1], color='white', linestyle='--', label='Horizontal Line at y=0', zorder = 1)
+        yticks.append(r[1])
+        ytickLabels.append(str(r[1]))
+    
+    plt.yticks(yticks, ytickLabels)
+
+    
+    
+   
+    
    
     #limits
-    plt.xlim(0, 365)
+    plt.xlim(months[0], months[len(months) - 1])
     plt.ylim(0, int(df[flowColumn].max()) * 1.1)
 
     #legend
@@ -443,13 +519,22 @@ def instanceBar():
         
          #Theme 
         if color == 'spectral':
-            stylefile.monthColors(plt)
+            i = 0
+            mColors = ['lightblue', "#a5d6c5", "#84ad89","#b0c27a","#f5f587","#e0b15a","#e89464","#b37659","#b06363","#f27c7c","#c086c4", "#b6abcc",]
+            startColor = months[i].month
+
+            while i < (len(months) - 1):
+                if i >= len(mColors) - 1:
+                    startColor = 0
+                plt.fill_between([months[i], months[i + 1]], y1 = 0, y2 = int(r[1]) * 1.25,  color=mColors[startColor], alpha=0.5)
+                i += 1
+                startColor += 1
             var = 'black'
         else: 
             var = "red"
 
         #Creation of bar graph
-        plt.bar(instanceDF['dayStart'], instanceDF['duration'], zorder = 2, color = var)
+        plt.bar(instanceDF['dayStart'], instanceDF['duration'], zorder = 2, color = var, width = 3)
 
 
         #labels
@@ -457,11 +542,11 @@ def instanceBar():
         plt.title("Instance Durations Within " + str(r[0]) + " - " + str(r[1]) + " cfs (2013-2023)")
         plt.xlabel("Start Day")
         plt.ylabel("Duration (days)")
-        plt.xticks(stylefile.xtick_positions, stylefile.xtick_labels)
+        plt.xticks(months, monthLabels)
 
         #limits
-        plt.xlim(0, 366)
-        plt.ylim(0, instanceDF['duration'].max() * 1.15)
+        plt.xlim(months[0], months[len(months) - 1])
+        plt.ylim(ranges[0][0] * -1.25, instanceDF['duration'].max() * 1.15)
 
         #legend
         
@@ -478,7 +563,17 @@ def allInstDur():
     
     #Theme 
     if color == 'spectral':
-        stylefile.monthColors(plt)
+        i = 0
+        mColors = ['lightblue', "#a5d6c5", "#84ad89","#b0c27a","#f5f587","#e0b15a","#e89464","#b37659","#b06363","#f27c7c","#c086c4", "#b6abcc",]
+        startColor = months[i].month
+        
+        while i < (len(months) - 1):
+            if i >= len(mColors) - 1:
+                startColor = 0
+            plt.fill_between([months[i], months[i + 1]], y1 = -(int(ranges[len(ranges) - 1][1])) , y2 = int(ranges[len(ranges) - 1][1]) * 1.25,  color=mColors[startColor], alpha=0.5)
+            i += 1
+            startColor += 1
+
         var = 'black'
     else: 
         var = "red"
@@ -492,13 +587,13 @@ def allInstDur():
             plt.hlines(y=[rangeName], xmin=tup[0], xmax=tup[1], color=var, linewidth=8)
 
     #limits
-    plt.xlim(1, 366)
+    plt.xlim(months[0], months[len(months) - 1])
 
     #labels
     plt.title("Duration of Flow at Different Rates")
     plt.xlabel("Day")
     plt.ylabel("Flow (cfs)")
-    plt.xticks(stylefile.xtick_positions, stylefile.xtick_labels)
+    plt.xticks(months, monthLabels)
     
     #legend
     legend_entries = []
@@ -510,44 +605,6 @@ def allInstDur():
     plt.savefig(plot_filename)
     plt.show()
 
-#First Derivative Graph
-def derivativePlot():
-    x_data = df[dayColumn]
-    y_data = df[flowColumn]
-
-    # Calculate the first derivative using np.gradient()
-    y_derivative = np.gradient(y_data, x_data)
-
-    # Create a graph to plot the first derivative
-    plt.figure(figsize=(8, 6))
-
-    #Theme 
-    if color == 'spectral':
-        stylefile.monthColors(plt)
-
-    # Plot the original data
-    plt.plot(x_data, y_data, label='Original Data', color='black', linestyle = '-')
-    plt.xlim(1, 366)
-    plt.xticks(stylefile.xtick_positions, stylefile.xtick_labels)
-    plt.title('Rate of Change of Flow Over Time')
-    plt.xlabel('Month')
-    plt.ylabel("Rate of Change (cfs)")
-    plt.axhline(y=0, color='gray', linestyle='--', zorder=1)
-
-
-    # Plot the first derivative
-    plt.plot(x_data, y_derivative, label='First Derivative', color='red', linestyle = '-')
-
-    #legend
-    legend_entries = []
-    legend_entries.append(plt.Line2D([0], [0], color='black', label='Original', markersize=15, linestyle='-'))
-    legend_entries.append(plt.Line2D([0], [0], color='red', label='Rate of Change (1st Derivative)', markersize=15, linestyle='-'))
-    plt.subplots_adjust(bottom=0.2) 
-    plt.legend(handles=legend_entries, bbox_to_anchor=(0.5, -.15), loc='upper center', ncol=3)
-
-    plot_filename = os.path.join(new_folder_name, "First Derivative.png")
-    plt.savefig(plot_filename)
-    plt.show()
 
 #Flow Duration Graph Creation
 fdc(df, flowColumn)
@@ -566,9 +623,5 @@ instanceBar()
 
 #Flow Instance Duration Graph Creation
 allInstDur()
-
-
-#First Derivative Graph Creation
-derivativePlot()
 
 print("\nDone!\n")
