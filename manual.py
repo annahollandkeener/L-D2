@@ -268,11 +268,16 @@ for r in ranges:
     dfInst = pd.DataFrame(dic)
     instDataFrames[dictName] = dfInst
 
+
 #Taking note of consecutive days of flow at each rate and adding to corresponding instance dataframe 
 for r in ranges:
-    instDFName = "instances" + str(r[0]) + "_" + str(r[1])
     rangeDFName = "range" + str(r[0]) + "_" + str(r[1]) + "df"
-    instDataFrames[instDFName] = flow_duration(rangeDFName, instDFName)
+    
+    if len(rangeDataFrames[rangeDFName]) > 0:
+        instDFName = "instances" + str(r[0]) + "_" + str(r[1])
+        rangeDFName = "range" + str(r[0]) + "_" + str(r[1]) + "df"
+        instDataFrames[instDFName] = flow_duration(rangeDFName, instDFName)
+        
 
 #Creating a dictionary to store instance dataframes. Instance dataframe can be accessed by instances#_#
 tupleLists = {}
@@ -287,7 +292,7 @@ for r in ranges:
     inst = instDataFrames[instDFName]
 
     for i in range(len(inst)):
-        durationTime = timedelta(days= (inst['duration'][i]))
+        durationTime = timedelta(days = (inst['duration'][i]))
         new_tuple = (inst['dayStart'][i], inst['dayStart'][i] + durationTime)
         tupleList.append(new_tuple)
     
@@ -413,7 +418,7 @@ def rangeGraph():
             while i < (len(months) - 1):
                 if i >= len(mColors) - 1:
                     startColor = 0
-                plt.fill_between([months[i], months[i + 1]], y1 = 0, y2 = int(r[1]) * 1.25,  color=mColors[startColor], alpha=0.5)
+                plt.fill_between([months[i], months[i + 1]], y1 = int(r[0]) * (-.25), y2 = int(r[1]) * 1.25,  color=mColors[startColor], alpha=0.5)
                 i += 1
                 startColor += 1
     
@@ -424,14 +429,14 @@ def rangeGraph():
         plt.scatter(rangeDF['Day'], rangeDF['Flow'], color=var, linestyle='None', zorder=2, marker='o', edgecolor='white', s=90)
 
         #Labels
-        plt.title("Days Within Flow Rate " + str(r[0]) + " - " + str(r[1]) + " (2013-2023)")
+        plt.title("Days Within Flow Rate " + str(r[0]) + " - " + str(r[1]))
         plt.xlabel("Month")
         plt.ylabel("Flow Rate (cfs)")
 
         #Limits and limit labels
         plt.xlim(months[0], months[len(months) - 1])
         plt.xticks(months, monthLabels)
-        plt.ylim(0, int(r[1]) * 1.25)
+        plt.ylim(int(r[0]) * (-.25), int(r[1]) * 1.25)
 
         #legend
         legend_entries = []
@@ -459,7 +464,7 @@ def avgDailyFlow():
         while i < (len(months) - 1):
             if i >= len(mColors) - 1:
                 startColor = 0
-            plt.fill_between([months[i], months[i + 1]], y1 = 0, y2 = int(ranges[len(ranges) - 1][1]) * 1.25,  color=mColors[startColor], alpha=0.5)
+            plt.fill_between([months[i], months[i + 1]], y1 = 0, y2 = int(df[flowColumn].max()) * 1.25,  color=mColors[startColor], alpha=0.5)
             i += 1
             startColor += 1
             
@@ -471,7 +476,7 @@ def avgDailyFlow():
     plt.plot(df["Day"], df["MF"], color=var, zorder = 2, marker = 'o', markerfacecolor = 'black', markeredgecolor = "white", linestyle = '-')
     
     #Labels
-    plt.title("Average Daily Flow Rate Over a Year (2013-2023)")
+    plt.title("Average Daily Flow Rate Over a Year")
     plt.xlabel("Month")
     plt.ylabel("Flow Rate (cfs)")
     plt.xticks(months, monthLabels)
@@ -489,11 +494,6 @@ def avgDailyFlow():
     
     plt.yticks(yticks, ytickLabels)
 
-    
-    
-   
-    
-   
     #limits
     plt.xlim(months[0], months[len(months) - 1])
     plt.ylim(0, int(df[flowColumn].max()) * 1.1)
@@ -538,15 +538,18 @@ def instanceBar():
 
 
         #labels
-        plt.title("Days Within Flow Rate " + str(r[0]) + " - " + str(r[1]) + " (2013-2023)")
-        plt.title("Instance Durations Within " + str(r[0]) + " - " + str(r[1]) + " cfs (2013-2023)")
+        plt.title("Days Within Flow Rate " + str(r[0]) + " - " + str(r[1]))
+        plt.title("Instance Durations Within " + str(r[0]) + " - " + str(r[1]) + " cfs")
         plt.xlabel("Start Day")
         plt.ylabel("Duration (days)")
         plt.xticks(months, monthLabels)
 
         #limits
         plt.xlim(months[0], months[len(months) - 1])
-        plt.ylim(ranges[0][0] * -1.25, instanceDF['duration'].max() * 1.15)
+        if len(instanceDF['duration']) > 0:
+            plt.ylim(0, instanceDF['duration'].max() * 1.15)
+        else:
+            plt.ylim(ranges[0][0], ranges[len(ranges) - 1][1])
 
         #legend
         
@@ -583,11 +586,17 @@ def allInstDur():
         tupleListName = "tuples" + str(r[0]) + "_" + str(r[1])
         rangeName = str(r[0]) + " - " + str(r[1])
 
+        tuplesBool = False
         for tup in tupleLists[tupleListName]:
+            if tupleLists[tupleListName] > 0:
+                tuplesBool = True
             plt.hlines(y=[rangeName], xmin=tup[0], xmax=tup[1], color=var, linewidth=8)
 
     #limits
     plt.xlim(months[0], months[len(months) - 1])
+    if tuplesBool == False:
+        plt.ylim(0, int(ranges[len(ranges) - 1][1]))
+        plt.yticks([])
 
     #labels
     plt.title("Duration of Flow at Different Rates")
