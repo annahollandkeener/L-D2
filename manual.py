@@ -426,17 +426,18 @@ def rangeGraph():
         else:
             var = 'red'
         
+        #Creating plot
         plt.scatter(rangeDF['Day'], rangeDF['Flow'], color=var, linestyle='None', zorder=2, marker='o', edgecolor='white', s=90)
 
         #Labels
-        plt.title("Days Within Flow Rate " + str(r[0]) + " - " + str(r[1]))
+        plt.title("Days Within Flow Rate " + str(r[0]) + " - " + str(r[1]) + " cfs")
         plt.xlabel("Month")
         plt.ylabel("Flow Rate (cfs)")
 
         #Limits and limit labels
         plt.xlim(months[0], months[len(months) - 1])
         plt.xticks(months, monthLabels)
-        plt.ylim(int(r[0]) * (-.25), int(r[1]) * 1.25)
+        plt.ylim(int(r[0]) * (.25), int(r[1]) * 1.25)
 
         #legend
         legend_entries = []
@@ -464,7 +465,7 @@ def avgDailyFlow():
         while i < (len(months) - 1):
             if i >= len(mColors) - 1:
                 startColor = 0
-            plt.fill_between([months[i], months[i + 1]], y1 = 0, y2 = int(df[flowColumn].max()) * 1.25,  color=mColors[startColor], alpha=0.5)
+            #plt.fill_between([months[i], months[i + 1]], y1 = 0, y2 = int(df[flowColumn].max()) * 1.25,  color=mColors[startColor], alpha=0.5)
             i += 1
             startColor += 1
             
@@ -480,23 +481,20 @@ def avgDailyFlow():
     plt.xlabel("Month")
     plt.ylabel("Flow Rate (cfs)")
     plt.xticks(months, monthLabels)
-    yticks = []
-    ytickLabels = []
+    yticks = [0]
+    ytickLabels = [0]
+    
 
     #Adding lines at ranges
     for r in ranges:
-        plt.axhline(y=r[0], color='white', linestyle='--', label='Horizontal Line at y=0', zorder=1)
-        yticks.append(r[0])
-        ytickLabels.append(str(r[0]))
-        plt.axhline(y=r[1], color='white', linestyle='--', label='Horizontal Line at y=0', zorder = 1)
-        yticks.append(r[1])
-        ytickLabels.append(str(r[1]))
+        plt.axhline(y=int(r[0]), color='white', linestyle='--', label='Horizontal Line at y=0', zorder=1)
+        plt.axhline(y=int(r[1]), color='white', linestyle='--', label='Horizontal Line at y=0', zorder = 1)
     
-    plt.yticks(yticks, ytickLabels)
+    #plt.yticks(yticks, ytickLabels)
 
     #limits
     plt.xlim(months[0], months[len(months) - 1])
-    plt.ylim(0, int(df[flowColumn].max()) * 1.1)
+    plt.ylim(int(df[flowColumn].min()) * (.25), int(df[flowColumn].max()) * 1.1)
 
     #legend
     legend_entries = []
@@ -520,13 +518,17 @@ def instanceBar():
          #Theme 
         if color == 'spectral':
             i = 0
+            j = 0
             mColors = ['lightblue', "#a5d6c5", "#84ad89","#b0c27a","#f5f587","#e0b15a","#e89464","#b37659","#b06363","#f27c7c","#c086c4", "#b6abcc",]
             startColor = months[i].month
 
             while i < (len(months) - 1):
-                if i >= len(mColors) - 1:
+                if j >= (len(mColors) - 1):
                     startColor = 0
-                plt.fill_between([months[i], months[i + 1]], y1 = 0, y2 = int(r[1]) * 1.25,  color=mColors[startColor], alpha=0.5)
+                    plt.fill_between([months[i], months[i + 1]], y1 = 0, y2 = instanceDF['duration'].max() * 1.25,  color=mColors[startColor], alpha=0.5)
+                else: 
+                    print(startColor)
+                    plt.fill_between([months[i], months[i + 1]], y1 = 0, y2 = 30,  color=mColors[startColor], alpha=0.5)
                 i += 1
                 startColor += 1
             var = 'black'
@@ -538,8 +540,8 @@ def instanceBar():
 
 
         #labels
-        plt.title("Days Within Flow Rate " + str(r[0]) + " - " + str(r[1]))
-        plt.title("Instance Durations Within " + str(r[0]) + " - " + str(r[1]) + " cfs")
+        plt.title("Days Within Flow Rate " + str(r[0]) + " -> " + str(r[1]))
+        plt.title("Instance Durations Within " + str(r[0]) + " -> " + str(r[1]) + " cfs")
         plt.xlabel("Start Day")
         plt.ylabel("Duration (days)")
         plt.xticks(months, monthLabels)
@@ -549,7 +551,7 @@ def instanceBar():
         if len(instanceDF['duration']) > 0:
             plt.ylim(0, instanceDF['duration'].max() * 1.15)
         else:
-            plt.ylim(ranges[0][0], ranges[len(ranges) - 1][1])
+            plt.ylim(0, 30)
 
         #legend
         
@@ -616,14 +618,14 @@ def allInstDur():
 
 
 #Flow Duration Graph Creation
-fdc(df, flowColumn)
+#fdc(df, flowColumn)
 
 
 #Average Daily Flow Over a Year Graph Creation
-avgDailyFlow()
+#avgDailyFlow()
 
 #Range Graph Creation for Each Range
-rangeGraph()
+#rangeGraph()
 
 
 #Bar Chart Duration Graph Creation
@@ -631,6 +633,6 @@ instanceBar()
 
 
 #Flow Instance Duration Graph Creation
-allInstDur()
+#allInstDur()
 
 print("\nDone!\n")
