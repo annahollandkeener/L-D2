@@ -418,7 +418,7 @@ def rangeGraph():
             while i < (len(months) - 1):
                 if i >= len(mColors) - 1:
                     startColor = 0
-                plt.fill_between([months[i], months[i + 1]], y1 = int(r[0]) * (-.25), y2 = int(r[1]) * 1.25,  color=mColors[startColor], alpha=0.5)
+                plt.fill_between([months[i], months[i + 1]], y1 = int(r[0]), y2 = int(r[1]),  color=mColors[startColor], alpha=0.5)
                 i += 1
                 startColor += 1
     
@@ -437,7 +437,7 @@ def rangeGraph():
         #Limits and limit labels
         plt.xlim(months[0], months[len(months) - 1])
         plt.xticks(months, monthLabels)
-        plt.ylim(int(r[0]) * (.25), int(r[1]) * 1.25)
+        plt.ylim(int(r[0]), int(r[1]))
 
         #legend
         legend_entries = []
@@ -465,7 +465,7 @@ def avgDailyFlow():
         while i < (len(months) - 1):
             if i >= len(mColors) - 1:
                 startColor = 0
-            #plt.fill_between([months[i], months[i + 1]], y1 = 0, y2 = int(df[flowColumn].max()) * 1.25,  color=mColors[startColor], alpha=0.5)
+            plt.fill_between([months[i], months[i + 1]], y1 = 0, y2 = int(df[flowColumn].max()) * 1.25,  color=mColors[startColor], alpha=0.5)
             i += 1
             startColor += 1
             
@@ -481,9 +481,6 @@ def avgDailyFlow():
     plt.xlabel("Month")
     plt.ylabel("Flow Rate (cfs)")
     plt.xticks(months, monthLabels)
-    yticks = [0]
-    ytickLabels = [0]
-    
 
     #Adding lines at ranges
     for r in ranges:
@@ -494,7 +491,7 @@ def avgDailyFlow():
 
     #limits
     plt.xlim(months[0], months[len(months) - 1])
-    plt.ylim(int(df[flowColumn].min()) * (.25), int(df[flowColumn].max()) * 1.1)
+    plt.ylim(int(df[flowColumn].min()) - 500, int(df[flowColumn].max()) + 500)
 
     #legend
     legend_entries = []
@@ -518,17 +515,13 @@ def instanceBar():
          #Theme 
         if color == 'spectral':
             i = 0
-            j = 0
             mColors = ['lightblue', "#a5d6c5", "#84ad89","#b0c27a","#f5f587","#e0b15a","#e89464","#b37659","#b06363","#f27c7c","#c086c4", "#b6abcc",]
             startColor = months[i].month
 
             while i < (len(months) - 1):
-                if j >= (len(mColors) - 1):
+                if i >= (len(mColors) - 1):
                     startColor = 0
-                    plt.fill_between([months[i], months[i + 1]], y1 = 0, y2 = instanceDF['duration'].max() * 1.25,  color=mColors[startColor], alpha=0.5)
-                else: 
-                    print(startColor)
-                    plt.fill_between([months[i], months[i + 1]], y1 = 0, y2 = 30,  color=mColors[startColor], alpha=0.5)
+                plt.fill_between([months[i], months[i + 1]], y1 = 0, y2 = 365,  color=mColors[startColor], alpha=0.5)
                 i += 1
                 startColor += 1
             var = 'black'
@@ -629,10 +622,10 @@ def allInstDur():
 
 
 #Bar Chart Duration Graph Creation
-instanceBar()
+#instanceBar()
 
 
 #Flow Instance Duration Graph Creation
-#allInstDur()
+allInstDur()
 
 print("\nDone!\n")
