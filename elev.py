@@ -208,12 +208,27 @@ def flow_duration(range, instance):
                 oneDay = timedelta(days=1)
                 #print((rangeDF['Day'][nex].day) - 1)
                 #print((rangeDF['Day'][curr].day))
-                if (((rangeDF['Day'][nex].day) - 1) == (rangeDF['Day'][curr].day)):
-                    print("SAME DAY")
+                
+                ###############
+                '''
+                if ((rangeDF['Day'][nex] - rangeDF['Day'][curr]) == timedelta(hours=1)):
+                    consecutive = True
+                    duration += 1
+                    curr = nex
+                elif ((rangeDF['Day'][nex] - rangeDF['Day'][curr]) > timedelta(hours=1)):
+                    
+                    curr = nex
+                '''
+
+                ###############
+                
+                if ((rangeDF['Day'][nex] - rangeDF['Day'][curr]) <= timedelta(hours=1)):
+                    print("CONSECUTIVE HOUR")
                     consecutive = True
                     duration += 1
                     curr += 1
                     nex += 1
+                    
                 else:
                     consecutive = False
                     new_row = {'dayStart': rangeDF['Day'][i], 'duration': duration}
