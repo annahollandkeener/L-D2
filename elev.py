@@ -206,7 +206,10 @@ def flow_duration(range, instance):
                 return instanceDF
             else:
                 oneDay = timedelta(days=1)
+                #print((rangeDF['Day'][nex].day) - 1)
+                #print((rangeDF['Day'][curr].day))
                 if (((rangeDF['Day'][nex].day) - 1) == (rangeDF['Day'][curr].day)):
+                    print("SAME DAY")
                     consecutive = True
                     duration += 1
                     curr += 1
