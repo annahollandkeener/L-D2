@@ -144,6 +144,14 @@ print("\nWorking...")
 
 ######################DATA ANALYSIS###############################
 
+#Properly Orienting DataFrame 
+
+df = df.sort_values(by = dayColumn, ascending=True)
+df['hour'] = df[dayColumn].dt.hour
+df = df.groupby('hour').first().reset_index()
+
+print(df)
+
 #Creating a dictionary to store dataframes. Range dataframe can be accessed by range#_#df
 rangeDataFrames = {}
 
@@ -180,25 +188,35 @@ while i < (len(df[elevColumn])):
                 break
         
     i += 1
-
-print(rangeDataFrames)
     
 #Consecutive day count function
 def flow_duration(range, instance):
     print("\n FLOW DURATION")
+    
     i = 0
     curr = i
     nex = i + 1
 
     rangeDF = rangeDataFrames[range]
+    rangeDF = rangeDF.sort_values(by = 'Day', ascending=True)
+
     instanceDF = instDataFrames[instance]
 
+    print("RANGE LENGTH BEFORE HOUR SORT: " + str(len(rangeDF)))
+    print(rangeDF)
+    
+
     while i < (len(rangeDF['Day']) - 1):
+        print("nex: " + str(nex) + ", len(rangeDF): " + str(len(rangeDF)))
         consecutive = True
         duration = 1
 
+        print("RANGE: " + range)
+        print(rangeDF)
         while consecutive == True:
+            #print("nex: " + str(nex) + ", len(rangeDF): " + str(len(rangeDF)))
             if nex == len(rangeDF):
+                print("REACHED THE END OF RANGE DF")
                 consecutive = False
                 new_row = {'dayStart': rangeDF['Day'][i], 'duration': duration}
                 instanceDF = pd.concat([instanceDF, pd.DataFrame([new_row])], ignore_index=True)
@@ -206,30 +224,16 @@ def flow_duration(range, instance):
                 return instanceDF
             else:
                 oneDay = timedelta(days=1)
-                #print((rangeDF['Day'][nex].day) - 1)
-                #print((rangeDF['Day'][curr].day))
-                
-                ###############
-                '''
-                if ((rangeDF['Day'][nex] - rangeDF['Day'][curr]) == timedelta(hours=1)):
-                    consecutive = True
-                    duration += 1
-                    curr = nex
-                elif ((rangeDF['Day'][nex] - rangeDF['Day'][curr]) > timedelta(hours=1)):
-                    
-                    curr = nex
-                '''
-
-                ###############
                 
                 if ((rangeDF['Day'][nex] - rangeDF['Day'][curr]) <= timedelta(hours=1)):
-                    print("CONSECUTIVE HOUR")
+                    #print("CONSECUTIVE HOUR")
                     consecutive = True
                     duration += 1
                     curr += 1
                     nex += 1
                     
                 else:
+                    print("NON CONSECUTIVE HOUR")
                     consecutive = False
                     new_row = {'dayStart': rangeDF['Day'][i], 'duration': duration}
                     instanceDF = pd.concat([instanceDF, pd.DataFrame([new_row])], ignore_index=True)
@@ -255,16 +259,16 @@ for r in ranges:
     print(dictName)
     print(dfInst)
 
-print(instDataFrames)
-
 
 #Taking note of consecutive days of flow at each rate and adding to corresponding instance dataframe 
 for r in ranges:
     rangeDFName = "range" + str(r[0]) + "_" + str(r[1]) + "df"
     
     if len(rangeDataFrames[rangeDFName]) > 0:
+        print("There are instances in this range!")
         instDFName = "instances" + str(r[0]) + "_" + str(r[1])
         rangeDFName = "range" + str(r[0]) + "_" + str(r[1]) + "df"
+        
         instDataFrames[instDFName] = flow_duration(rangeDFName, instDFName)
 
         print("\n")
@@ -284,9 +288,6 @@ for r in ranges:
 
     instDFName = "instances" + str(r[0]) + "_" + str(r[1])
     inst = instDataFrames[instDFName]
-
-    print("INST DATA FRAMES: ")
-    print(instDataFrames)
 
     for i in range(len(inst)):
         durationTime = timedelta(days = (inst['duration'][i]))
