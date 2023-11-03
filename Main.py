@@ -30,7 +30,14 @@ while True:
         print("\nInvalid input.")
 
 if mode == 'manual':
-    file_name = 'manual.py'
+    while True:
+        dataType = input("Enter data type ('elevation', 'flow')")
+        if dataType.lower() == 'flow':
+            file_name = 'manual.py'
+        elif dataType.lower() == 'elevation':
+            file_name = 'elev.py'
+        else:
+            print("Invalid input.")
 elif mode == 'USGS':
     file_name = 'USGS'
     

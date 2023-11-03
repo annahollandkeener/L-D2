@@ -8,7 +8,7 @@ from dateutil.relativedelta import relativedelta
 
 #CSV variables to remember
 file = ''
-flowColumn = ''
+elevColumn = ''
 dayColumn = ''
 df = ''
 
@@ -16,7 +16,7 @@ df = ''
 while True:
     file = input("\nEnter csv name (including '.csv'): ")
     try:
-        data = pd.read_csv(file, converters={flowColumn:float})
+        data = pd.read_csv(file, converters={elevColumn:float})
         df = pd.DataFrame(data)
         break
     except FileNotFoundError:
@@ -145,12 +145,21 @@ print("\nWorking...")
 ######################DATA ANALYSIS###############################
 
 #Properly Orienting DataFrame 
-
-df = df.sort_values(by = dayColumn, ascending=True)
-df['hour'] = df[dayColumn].dt.hour
-df = df.groupby('hour').first().reset_index()
-
 print(df)
+df = df.sort_values(by = dayColumn, ascending=True)
+print("sorted df: ")
+print(df)
+df['hour'] = df[dayColumn].dt.hour
+print("Does something with the hour df")
+print(df)
+df = df.groupby('hour').first().reset_index()
+print("Groups by hour df")
+print(df)
+df = df.sort_values(by = dayColumn, ascending=True)
+print("resorts")
+print(df)
+
+
 
 #Creating a dictionary to store dataframes. Range dataframe can be accessed by range#_#df
 rangeDataFrames = {}
@@ -160,7 +169,7 @@ for r in ranges:
     dictName = "range" + str(r[0]) + "_" + str(r[1])
     dic = {
         'Day' : [],
-        'Flow' : [],
+        'Elev' : [],
         }
     dfRangeName = dictName + "df"
     dfRange = pd.DataFrame(dic)
@@ -183,7 +192,7 @@ while i < (len(df[elevColumn])):
 
         if float(df[elevColumn][i]) >= float(r[0]):
             if df[elevColumn][i] >= float(r[0]) and df[elevColumn][i] <= float(r[1]):
-                new_row = {'Day': df[dayColumn][i], 'Flow': df[elevColumn][i]}
+                new_row = {'Day': df[dayColumn][i], 'Elev': df[elevColumn][i]}
                 rangeDataFrames[dfRangeName] = pd.concat([rangeDataFrames[dfRangeName], pd.DataFrame([new_row])], ignore_index=True)
                 break
         
@@ -198,7 +207,7 @@ def flow_duration(range, instance):
     nex = i + 1
 
     rangeDF = rangeDataFrames[range]
-    rangeDF = rangeDF.sort_values(by = 'Day', ascending=True)
+    rangeDF = rangeDF.groupby('Day')['Elev'].mean().reset_index()
 
     instanceDF = instDataFrames[instance]
 
@@ -240,7 +249,6 @@ def flow_duration(range, instance):
                     curr += 1
                     nex += 1
                     i = curr
-    print(instanceDF)
     return instanceDF
 
 #Creating a dictionary to store instance dataframes. Instance dataframe can be accessed by instances#_#
@@ -270,8 +278,8 @@ for r in ranges:
         rangeDFName = "range" + str(r[0]) + "_" + str(r[1]) + "df"
         
         instDataFrames[instDFName] = flow_duration(rangeDFName, instDFName)
-
-        print("\n")
+        instDataFrames[instDFName] = instDataFrames[instDFName].sort_values(by = 'dayStart', ascending=True)
+        print("\nInst")
         print(instDataFrames[instDFName])
         print()
 
