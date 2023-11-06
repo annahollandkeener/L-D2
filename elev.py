@@ -5,6 +5,8 @@ import os
 import datetime
 from datetime import timedelta
 from dateutil.relativedelta import relativedelta
+import shutil
+from tabulate import tabulate
 
 #CSV variables to remember
 file = ''
@@ -60,7 +62,7 @@ while True:
         print("\nColumns in the csv: ")
         for column in df.columns:
             print("'" + column + "'")
-
+'''
 #Prompting the user to decide between default ranges and unique ranges
 print("\nDefault ranges are: 2.6ft (normal), 1.5ft (monitor), 2ft (minor), 3ft (moderate), 3.5ft (major)")
 while True:
@@ -113,7 +115,7 @@ if specify == 'y':
         
         if float(start) >= float(end):
             print("\nStart cannot be larger than or equal to end value. Range not added.")
-                
+       
         else:
             ranges.append((start, end))
             print("Range " + str(rangeCount) + " added: " + str(start) + " - " + str(end) + ".")
@@ -127,10 +129,11 @@ if specify == 'y':
                     break
                 else:
                     print("Invalid input.")
-else:
-    #ranges will be set to defaults
-    print("Ranges will be set to defaults.")
-    ranges = [(-2, 1.5), (1.5, 2), (2, 3), (3, 3.5)]
+'''
+#else:
+#ranges will be set to defaults
+#print("Ranges will be set to defaults.")
+ranges = [(-2, 1.5), (1.5, 2), (2, 3), (3, 3.5)]
 
 #print ranges
 print("\nYour ranges: ")
@@ -324,10 +327,11 @@ months.append(monthDate)
 monthLabels = []
 for m in months:
     monthLabels.append(m.strftime("%b"))
-
-
-xtick_positions = months  # Define the Y-axis tick positions
-xtick_labels = monthLabels # Define the labels for the tick positions
+'''
+if relativedelta(df[dayColumn][len(df)- 1], df[dayColumn][0]).months > 1:
+    xtick_positions = months  # Define the Y-axis tick positions
+    xtick_labels = monthLabels # Define the labels for the tick positions
+'''
 
 #Creating range y-axis labels
 ytick_positions = []
@@ -357,6 +361,9 @@ while True:
 '''
 
 #This method overwrites the same folder
+if os.path.exists(new_folder_name):
+    shutil.rmtree(new_folder_name)
+
 os.mkdir(new_folder_name)
 
 ################ PRODUCT CREATION ################ 
@@ -371,9 +378,12 @@ def avgDailyFlow():
     
     #Labels
     plt.title("Water Surface Elevation Over Time")
-    plt.xlabel("Month")
+    if relativedelta(df[dayColumn][len(df)- 1], df[dayColumn][0]).months > 1:
+        plt.xlabel("Month")
+    else:
+        plt.xlabel("Day")
     plt.ylabel("Elevation (ft)")
-    plt.xticks(months, monthLabels)
+    #plt.xticks(months, monthLabels)
     plt.yticks(ytick_positions, ytick_labels)
 
     #Adding lines at ranges
@@ -382,14 +392,33 @@ def avgDailyFlow():
         plt.axhline(y=float(r[1]), color='white', linestyle='--', label='Horizontal Line at y=0', zorder = 1)
 
     #limits
-    plt.xlim(months[0], months[len(months) - 1])
+    plt.xlim(months[0], df[dayColumn].max())
     plt.ylim(float(ranges[0][0]), float(ranges[len(ranges) - 1][1]))
 
     plot_filename = os.path.join(new_folder_name, "Elevation Over Time.png")
-    #plt.savefig(plot_filename)
+    plt.savefig(plot_filename)
 
     plt.show()
 
-    #Duration Table Creation 
-    print(instDataFrames)
-        
+def table():
+    for r in ranges:
+        instDFName = "instances" + str(r[0]) + "_" + str(r[1])
+        if len(instDataFrames[instDFName]) > 0:
+            print(instDataFrames[instDFName])
+            #Duration Table Creation 
+            table = tabulate(instDataFrames[instDFName], headers='keys', tablefmt='plain')
+            print(table)
+            # Create a Matplotlib figure and axis
+            fig, ax = plt.subplots()
+
+            # Remove axis labels and ticks
+            ax.axis('off')
+
+            # Display the table on the Matplotlib axis
+            ax.text(0.1, 0.1, table, va='center', ha='center')
+            table_filename = os.path.join(new_folder_name, "Elevation Over Time Table.png")
+            plt.savefig(table_filename)
+            plt.show()
+
+avgDailyFlow()
+table()
