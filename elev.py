@@ -148,6 +148,7 @@ print("\nWorking...")
 ######################DATA ANALYSIS###############################
 
 #Properly Orienting DataFrame 
+'''
 print(df)
 df = df.sort_values(by = dayColumn, ascending=True)
 print("sorted df: ")
@@ -161,6 +162,8 @@ print(df)
 df = df.sort_values(by = dayColumn, ascending=True)
 print("resorts")
 print(df)
+'''
+df = df.groupby(dayColumn)[elevColumn].mean().reset_index()
 
 
 
@@ -208,29 +211,21 @@ def flow_duration(range, instance):
     i = 0
     curr = i
     nex = i + 1
-
+    
     rangeDF = rangeDataFrames[range]
-    rangeDF = rangeDF.groupby('Day')['Elev'].mean().reset_index()
 
     instanceDF = instDataFrames[instance]
 
-    print("RANGE LENGTH BEFORE HOUR SORT: " + str(len(rangeDF)))
-    print(rangeDF)
-    
-
     while i < (len(rangeDF['Day']) - 1):
-        print("nex: " + str(nex) + ", len(rangeDF): " + str(len(rangeDF)))
         consecutive = True
         duration = 1
 
-        print("RANGE: " + range)
-        print(rangeDF)
         while consecutive == True:
             #print("nex: " + str(nex) + ", len(rangeDF): " + str(len(rangeDF)))
             if nex == len(rangeDF):
                 print("REACHED THE END OF RANGE DF")
                 consecutive = False
-                new_row = {'dayStart': rangeDF['Day'][i], 'duration': duration}
+                new_row = {'dayStart': rangeDF['Day'][i], 'duration': duration, 'elev': rangeDF['Elev'][i]}
                 instanceDF = pd.concat([instanceDF, pd.DataFrame([new_row])], ignore_index=True)
                 i = curr
                 return instanceDF
@@ -247,11 +242,12 @@ def flow_duration(range, instance):
                 else:
                     print("NON CONSECUTIVE HOUR")
                     consecutive = False
-                    new_row = {'dayStart': rangeDF['Day'][i], 'duration': duration}
+                    new_row = {'dayStart': rangeDF['Day'][i], 'duration': duration, 'elev': rangeDF['Elev'][i]}
                     instanceDF = pd.concat([instanceDF, pd.DataFrame([new_row])], ignore_index=True)
                     curr += 1
                     nex += 1
                     i = curr
+
     return instanceDF
 
 #Creating a dictionary to store instance dataframes. Instance dataframe can be accessed by instances#_#
@@ -263,12 +259,10 @@ for r in ranges:
     dic = {
         'dayStart' : [],
         'duration' : [],
+        'elev': []
         }
     dfInst = pd.DataFrame(dic)
     instDataFrames[dictName] = dfInst
-    print("INSTANCE")
-    print(dictName)
-    print(dfInst)
 
 
 #Taking note of consecutive days of flow at each rate and adding to corresponding instance dataframe 
@@ -276,15 +270,17 @@ for r in ranges:
     rangeDFName = "range" + str(r[0]) + "_" + str(r[1]) + "df"
     
     if len(rangeDataFrames[rangeDFName]) > 0:
-        print("There are instances in this range!")
         instDFName = "instances" + str(r[0]) + "_" + str(r[1])
         rangeDFName = "range" + str(r[0]) + "_" + str(r[1]) + "df"
         
         instDataFrames[instDFName] = flow_duration(rangeDFName, instDFName)
-        instDataFrames[instDFName] = instDataFrames[instDFName].sort_values(by = 'dayStart', ascending=True)
-        print("\nInst")
-        print(instDataFrames[instDFName])
-        print()
+
+        days = []
+
+        for d in instDataFrames[instDFName]['duration']:
+            days.append(round(d / 24, 3))
+        
+        instDataFrames[instDFName]['Duration in Days'] = days
 
         
 
@@ -388,8 +384,8 @@ def avgDailyFlow():
 
     #Adding lines at ranges
     for r in ranges:
-        plt.axhline(y=float(r[0]), color='white', linestyle='--', label='Horizontal Line at y=0', zorder=1)
-        plt.axhline(y=float(r[1]), color='white', linestyle='--', label='Horizontal Line at y=0', zorder = 1)
+        plt.axhline(y=float(r[0]), color='grey', linestyle='--', label='Horizontal Line at y=0', zorder=1)
+        plt.axhline(y=float(r[1]), color='grey', linestyle='--', label='Horizontal Line at y=0', zorder = 1)
 
     #limits
     plt.xlim(months[0], df[dayColumn].max())
@@ -404,7 +400,6 @@ def table():
     for r in ranges:
         instDFName = "instances" + str(r[0]) + "_" + str(r[1])
         if len(instDataFrames[instDFName]) > 0:
-            print(instDataFrames[instDFName])
             #Duration Table Creation 
             table = tabulate(instDataFrames[instDFName], headers='keys', tablefmt='plain')
             print(table)
