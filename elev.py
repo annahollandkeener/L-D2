@@ -148,24 +148,10 @@ print("\nWorking...")
 ######################DATA ANALYSIS###############################
 
 #Properly Orienting DataFrame 
-'''
+df = df.groupby(df[dayColumn].dt.hour)[elevColumn].mean().reset_index().agg({
+    
+})
 print(df)
-df = df.sort_values(by = dayColumn, ascending=True)
-print("sorted df: ")
-print(df)
-df['hour'] = df[dayColumn].dt.hour
-print("Does something with the hour df")
-print(df)
-df = df.groupby('hour').first().reset_index()
-print("Groups by hour df")
-print(df)
-df = df.sort_values(by = dayColumn, ascending=True)
-print("resorts")
-print(df)
-'''
-df = df.groupby(dayColumn)[elevColumn].mean().reset_index()
-
-
 
 #Creating a dictionary to store dataframes. Range dataframe can be accessed by range#_#df
 rangeDataFrames = {}
@@ -230,8 +216,6 @@ def flow_duration(range, instance):
                 i = curr
                 return instanceDF
             else:
-                oneDay = timedelta(days=1)
-                
                 if ((rangeDF['Day'][nex] - rangeDF['Day'][curr]) <= timedelta(hours=1)):
                     #print("CONSECUTIVE HOUR")
                     consecutive = True
@@ -242,7 +226,7 @@ def flow_duration(range, instance):
                 else:
                     print("NON CONSECUTIVE HOUR")
                     consecutive = False
-                    new_row = {'dayStart': rangeDF['Day'][i], 'duration': duration, 'elev': rangeDF['Elev'][i]}
+                    new_row = {'dayStart': rangeDF['Day'][i], 'duration': duration, 'elev': rangeDF['Elev'][+i]}
                     instanceDF = pd.concat([instanceDF, pd.DataFrame([new_row])], ignore_index=True)
                     curr += 1
                     nex += 1
