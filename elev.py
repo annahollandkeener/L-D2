@@ -341,8 +341,21 @@ def avgDailyFlow():
 
     #limits
     plt.xlim(months[0], df[dayColumn].max())
-    #plt.ylim(float(ranges[0][0]), float(ranges[len(ranges) - 1][1]))
-    plt.ylim(float(ranges[0][0]), df[elevColumn].max())
+
+    #if the max data point is higher than the specified range, use the max as the limit
+    #else, use the specified range as the limit
+    if df[elevColumn].max() >= float(ranges[len(ranges) - 1][1]):
+        if df[elevColumn].min() > float(ranges[0][0]):
+            plt.ylim(float(ranges[0][0]), df[elevColumn].max())
+        else:
+            plt.ylim(float(ranges[0][0]), df[elevColumn].max())
+    elif df[elevColumn].max() < float(ranges[len(ranges) - 1][1]):
+        if df[elevColumn].min() > float(ranges[0][0]):
+            plt.ylim(float(ranges[0][0]), float(ranges[len(ranges) - 1][1]))
+        else:
+            plt.ylim(float(ranges[0][0]), float(ranges[len(ranges) - 1][1]))
+
+
 
     plot_filename = os.path.join(new_folder_name, "Elevation Over Time.png")
     plt.savefig(plot_filename)
