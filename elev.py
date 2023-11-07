@@ -164,14 +164,6 @@ for r in ranges:
     dfRange = pd.DataFrame(dic)
     rangeDataFrames[dfRangeName] = dfRange
 
-
-#New row function
-x = 0
-def new_row(dataFrame, elev):
-    new_row = {'Day': df[dayColumn][x], 'Elev': elev}
-    return new_row
-
-
 #Sorting all of the elevations in the elevation column floato specified ranges
 i = 0
 print(df.columns)
@@ -380,8 +372,6 @@ while True:
     else:
         count += 1
         new_folder_name = "elev_analysis (" + str(count) + ")"
-
-
 
 for r in ranges:
     instDFName = "instances" + str(r[0]) + "_" + str(r[1])
