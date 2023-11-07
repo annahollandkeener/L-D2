@@ -147,11 +147,8 @@ print("\nWorking...")
 
 ######################DATA ANALYSIS###############################
 
-#Properly Orienting DataFrame 
-df = df.groupby(df[dayColumn].dt.hour)[elevColumn].mean().reset_index().agg({
-    
-})
-print(df)
+#Properly Filtering DataFrame. Groups by hour and takes assigns the mean for each hour. 
+df = df.groupby(pd.Grouper(freq='60min', key='Reading')).mean(numeric_only=True).round(2).dropna().reset_index()
 
 #Creating a dictionary to store dataframes. Range dataframe can be accessed by range#_#df
 rangeDataFrames = {}
@@ -177,6 +174,7 @@ def new_row(dataFrame, elev):
 
 #Sorting all of the elevations in the elevation column floato specified ranges
 i = 0
+print(df.columns)
 while i < (len(df[elevColumn])):
     for r in ranges:
         dictName = "range" + str(r[0]) + "_" + str(r[1])
@@ -262,11 +260,9 @@ for r in ranges:
         days = []
 
         for d in instDataFrames[instDFName]['duration']:
-            days.append(round(d / 24, 3))
+            days.append(round(d / 24, 1))
         
         instDataFrames[instDFName]['Duration in Days'] = days
-
-        
 
 #Creating a dictionary to store instance dataframes. Instance dataframe can be accessed by instances#_#
 tupleLists = {}
@@ -307,11 +303,6 @@ months.append(monthDate)
 monthLabels = []
 for m in months:
     monthLabels.append(m.strftime("%b"))
-'''
-if relativedelta(df[dayColumn][len(df)- 1], df[dayColumn][0]).months > 1:
-    xtick_positions = months  # Define the Y-axis tick positions
-    xtick_labels = monthLabels # Define the labels for the tick positions
-'''
 
 #Creating range y-axis labels
 ytick_positions = []
@@ -323,35 +314,12 @@ for r in ranges:
     ytick_labels.append(str(r[0]))
     ytick_labels.append(str(r[1]))
 
-#Adding a folder to hold the graphs
-new_folder_name = "Graphs"
-count = 0
-
-#This method creates a new folder every time
-'''
-while True:
-    # Check if the directory exists
-    if not os.path.exists(new_folder_name):
-        # If it doesn't exist, create the new directory
-        os.mkdir(new_folder_name)
-        break
-    else:
-        count += 1
-        new_folder_name = "Graphs (" + str(count) + ")"
-'''
-
-#This method overwrites the same folder
-if os.path.exists(new_folder_name):
-    shutil.rmtree(new_folder_name)
-
-os.mkdir(new_folder_name)
-
 ################ PRODUCT CREATION ################ 
 
 #Average Daily Flow Over a Year Graph Display
 def avgDailyFlow(): 
     #Graph cration
-    plt.figure(figsize=(8, 6))
+    plt.figure(figsize=(20, 6))
     
     #Data definition
     plt.plot(df[dayColumn], df[elevColumn], color='blue', zorder = 2, linestyle = '-')
@@ -373,31 +341,43 @@ def avgDailyFlow():
 
     #limits
     plt.xlim(months[0], df[dayColumn].max())
-    plt.ylim(float(ranges[0][0]), float(ranges[len(ranges) - 1][1]))
+    #plt.ylim(float(ranges[0][0]), float(ranges[len(ranges) - 1][1]))
+    plt.ylim(float(ranges[0][0]), df[elevColumn].max())
 
     plot_filename = os.path.join(new_folder_name, "Elevation Over Time.png")
     plt.savefig(plot_filename)
 
     plt.show()
 
-def table():
-    for r in ranges:
-        instDFName = "instances" + str(r[0]) + "_" + str(r[1])
-        if len(instDataFrames[instDFName]) > 0:
-            #Duration Table Creation 
-            table = tabulate(instDataFrames[instDFName], headers='keys', tablefmt='plain')
-            print(table)
-            # Create a Matplotlib figure and axis
-            fig, ax = plt.subplots()
+################## Executing Map and CSV ##################
+#displaying all elevation over time
 
-            # Remove axis labels and ticks
-            ax.axis('off')
+new_folder_name = "elev_analysis"
+count = 0
 
-            # Display the table on the Matplotlib axis
-            ax.text(0.1, 0.1, table, va='center', ha='center')
-            table_filename = os.path.join(new_folder_name, "Elevation Over Time Table.png")
-            plt.savefig(table_filename)
-            plt.show()
+while True:
+
+    folder_path = os.path.join(os.getcwd(), new_folder_name)
+
+    # Check if the directory exists
+    if not os.path.exists(folder_path):
+        # If it doesn't exist, create the new directory
+        os.mkdir(folder_path)
+        break
+    else:
+        count += 1
+        new_folder_name = "elev_analysis (" + str(count) + ")"
+
+
+
+for r in ranges:
+    instDFName = "instances" + str(r[0]) + "_" + str(r[1])
+    inst = instDataFrames[instDFName]
+
+    if len(inst) > 0:
+        print(inst)
+        csv_path = os.path.join(folder_path, str(r[0]) + " to " + str(r[1]) + " ft.csv")
+        inst.to_csv(csv_path)
 
 avgDailyFlow()
-table()
+

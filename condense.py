@@ -74,23 +74,29 @@ for t in ranges:
 #Start of process
 print("\nWorking...")
 
-df = df.groupby(dayColumn)[elevColumn].mean().reset_index()
+#grouped = df.groupby(dayColumn)[elevColumn].mean().reset_index()
+df = df.groupby(pd.Grouper(freq='60min', key='Reading')).mean(numeric_only=True).dropna()
+
 
 new_folder_name = "Grouped Data"
 count = 0
 
 while True:
-    # Check if the directory exists
-    if not os.path.exists(new_folder_name):
+
+    folder_path = os.path.join(os.getcwd(), new_folder_name)
+    # Checkv if the directory exists
+    if not os.path.exists(folder_path):
         # If it doesn't exist, create the new directory
-        os.mkdir(new_folder_name)
+        os.mkdir(folder_path)
         break
     else:
         count += 1
         new_folder_name = "Data (" + str(count) + ")"
 
 print(df)
-df.to_csv("Data.csv", index=False)
-dataName = os.path.join(new_folder_name, "Data.csv")
+
+csv_path = os.path.join(folder_path, "Data.csv")
+
+df.to_csv(csv_path)
 
 print("Done! Grouped by hour.")
