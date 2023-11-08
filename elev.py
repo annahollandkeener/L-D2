@@ -166,7 +166,6 @@ for r in ranges:
 
 #Sorting all of the elevations in the elevation column floato specified ranges
 i = 0
-print(df.columns)
 while i < (len(df[elevColumn])):
     for r in ranges:
         dictName = "range" + str(r[0]) + "_" + str(r[1])
@@ -182,7 +181,6 @@ while i < (len(df[elevColumn])):
     
 #Consecutive day count function
 def flow_duration(range, instance):
-    print("\n FLOW DURATION")
     
     i = 0
     curr = i
@@ -199,7 +197,6 @@ def flow_duration(range, instance):
         while consecutive == True:
             #print("nex: " + str(nex) + ", len(rangeDF): " + str(len(rangeDF)))
             if nex == len(rangeDF):
-                print("REACHED THE END OF RANGE DF")
                 consecutive = False
                 new_row = {'dayStart': rangeDF['Day'][i], 'duration': duration, 'elev': rangeDF['Elev'][i]}
                 instanceDF = pd.concat([instanceDF, pd.DataFrame([new_row])], ignore_index=True)
@@ -214,7 +211,6 @@ def flow_duration(range, instance):
                     nex += 1
                     
                 else:
-                    print("NON CONSECUTIVE HOUR")
                     consecutive = False
                     new_row = {'dayStart': rangeDF['Day'][i], 'duration': duration, 'elev': rangeDF['Elev'][+i]}
                     instanceDF = pd.concat([instanceDF, pd.DataFrame([new_row])], ignore_index=True)
@@ -306,6 +302,14 @@ for r in ranges:
     ytick_labels.append(str(r[0]))
     ytick_labels.append(str(r[1]))
 
+#Adding ticks at min and max values of data
+ytick_positions.append(df[elevColumn].min())
+ytick_positions.append(df[elevColumn].max())
+ytick_labels.append(str(df[elevColumn].min()) + ' (min)')
+ytick_labels.append(str(df[elevColumn].max()) + ' (max)')
+
+
+
 ################ PRODUCT CREATION ################ 
 
 #Average Daily Flow Over a Year Graph Display
@@ -314,7 +318,7 @@ def avgDailyFlow():
     plt.figure(figsize=(20, 6))
     
     #Data definition
-    plt.plot(df[dayColumn], df[elevColumn], color='blue', zorder = 2, linestyle = '-')
+    plt.plot(df[dayColumn], df[elevColumn], color='#424242', zorder = 2, linestyle = '-')
     
     #Labels
     plt.title("Water Surface Elevation Over Time")
@@ -326,13 +330,8 @@ def avgDailyFlow():
     #plt.xticks(months, monthLabels)
     plt.yticks(ytick_positions, ytick_labels)
 
-    #Adding lines at ranges
-    for r in ranges:
-        plt.axhline(y=float(r[0]), color='grey', linestyle='--', label='Horizontal Line at y=0', zorder=1)
-        plt.axhline(y=float(r[1]), color='grey', linestyle='--', label='Horizontal Line at y=0', zorder = 1)
-
     #limits
-    plt.xlim(months[0], df[dayColumn].max())
+    plt.xlim(df[dayColumn].min(), df[dayColumn].max())
 
     #if the max data point is higher than the specified range, use the max as the limit
     #else, use the specified range as the limit
@@ -347,8 +346,52 @@ def avgDailyFlow():
         else:
             plt.ylim(float(ranges[0][0]), float(ranges[len(ranges) - 1][1]))
 
+        #Adding lines at ranges
+    for r in ranges:
+        plt.axhline(y=float(r[0]), color='grey', linestyle='--', label='Horizontal Line at y=0', zorder=1)
+        plt.axhline(y=float(r[1]), color='grey', linestyle='--', label='Horizontal Line at y=0', zorder = 1)
+
+    #Adds a horizontal line at the top of the graph 
+    if df[elevColumn].max() < float(ranges[len(ranges) - 1][1]):
+        plt.axhline(y=float(ranges[len(ranges) - 1][1]), color='grey', linestyle='--', label='Horizontal Line at y=0', zorder = 1)
+    else:
+        plt.axhline(y=df[elevColumn].max(), color='grey', linestyle='--', label='Horizontal Line at y=0', zorder = 1)
 
 
+    red = 197/255
+    green = 247/255
+    blue = 158/255
+ 
+    if df[elevColumn].min() > float(ranges[0][0]):
+        bottom = float(ranges[0][0])
+    else:
+        bottom = df[elevColumn].min()
+
+    if df[elevColumn].max() >= float(ranges[len(ranges) - 1][1]):
+        top = df[elevColumn].max()
+    else:
+        top = float(ranges[len(ranges) - 1][1])
+
+    for r in ranges:
+        if r == ranges[0]:
+            plt.fill_between(df[dayColumn], bottom, r[1], color= (197/255, 247/255, 158/255), alpha=0.5, label='Shaded Area')
+        elif r == ranges[len(ranges) - 1]:
+            plt.fill_between(df[dayColumn], r[0], top, color= (247/255, 158/255, 158/255), alpha=0.5, label='Shaded Area')
+        else:
+            if red < 247/255:
+                red += 25/255
+            else:
+                green -= 25/255
+            plt.fill_between(df[dayColumn], r[0], r[1], color= (red, green, blue), alpha=0.5, label='Shaded Area')
+
+
+
+
+
+
+
+
+    
     plot_filename = os.path.join(new_folder_name, "Elevation Over Time.png")
     plt.savefig(plot_filename)
 
@@ -378,9 +421,10 @@ for r in ranges:
     inst = instDataFrames[instDFName]
 
     if len(inst) > 0:
-        print(inst)
         csv_path = os.path.join(folder_path, str(r[0]) + " to " + str(r[1]) + " ft.csv")
         inst.to_csv(csv_path)
 
 avgDailyFlow()
+print("MAX: ")
+print(df[elevColumn].max())
 
