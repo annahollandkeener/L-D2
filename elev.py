@@ -4,9 +4,9 @@ import numpy as np
 import os
 import datetime
 from datetime import timedelta
+from datetime import datetime
 from dateutil.relativedelta import relativedelta
 import shutil
-from tabulate import tabulate
 
 #CSV variables to remember
 file = ''
@@ -38,7 +38,7 @@ while True:
             print("'" + column + "'")
 
 #Accepted date formats
-date_formats = ["%Y-%m-%d", "%d/%m/%Y", "%m/%d/%Y", "%Y%m%d", "%d-%m-%Y", "%Y/%m/%d", "%m/%d/%Y %H:%M"]
+date_formats = ["%Y-%m-%d", "%d/%m/%Y", "%m/%d/%Y", "%Y%m%d", "%d-%m-%Y", "%Y/%m/%d", "%m/%d/%Y %H:%M", "%m/%d/%Y %H:%M:%S", "%Y/%m/%d %H:%M:%S", "%Y-%m-%d %H:%M:%S"]
 
 formatAccepted = False
 
@@ -52,16 +52,22 @@ while True:
                 formatAccepted = True
                 break
             except ValueError:
+                print('passed')
                 pass
         if formatAccepted == True:
             break
         else:
-            print("***Error: This column is not in a recognized date format.***")
+            print("\n***Error: This column is not in a recognized date format***")
+            print("Accepted formats include: \n")
+            for format in date_formats:
+                print(format)
+
     else:
         print("\n***This is not a column in the given csv***")
         print("\nColumns in the csv: ")
         for column in df.columns:
             print("'" + column + "'")
+
 '''
 #Prompting the user to decide between default ranges and unique ranges
 print("\nDefault ranges are: 2.6ft (normal), 1.5ft (monitor), 2ft (minor), 3ft (moderate), 3.5ft (major)")
@@ -144,6 +150,10 @@ for t in ranges:
 #Start of process
 print("\nWorking...")
 
+print(df[dayColumn].dtype)
+print(df.columns)
+print(df)
+
 
 ######################DATA ANALYSIS###############################
 
@@ -212,7 +222,7 @@ def flow_duration(range, instance):
                     
                 else:
                     consecutive = False
-                    new_row = {'dayStart': rangeDF['Day'][i], 'duration': duration, 'elev': rangeDF['Elev'][+i]}
+                    new_row = {'dayStart': rangeDF['Day'][i], 'duration': duration, 'elev': rangeDF['Elev'][i]}
                     instanceDF = pd.concat([instanceDF, pd.DataFrame([new_row])], ignore_index=True)
                     curr += 1
                     nex += 1
@@ -346,7 +356,7 @@ def avgDailyFlow():
         else:
             plt.ylim(float(ranges[0][0]), float(ranges[len(ranges) - 1][1]))
 
-        #Adding lines at ranges
+    #Adding lines at ranges
     for r in ranges:
         plt.axhline(y=float(r[0]), color='grey', linestyle='--', label='Horizontal Line at y=0', zorder=1)
         plt.axhline(y=float(r[1]), color='grey', linestyle='--', label='Horizontal Line at y=0', zorder = 1)
@@ -358,20 +368,24 @@ def avgDailyFlow():
         plt.axhline(y=df[elevColumn].max(), color='grey', linestyle='--', label='Horizontal Line at y=0', zorder = 1)
 
 
+    #start color
     red = 197/255
     green = 247/255
     blue = 158/255
  
+    #Establishing where the bottom of the graph starts
     if df[elevColumn].min() > float(ranges[0][0]):
         bottom = float(ranges[0][0])
     else:
         bottom = df[elevColumn].min()
 
+    #Establishing where the top of the graph starts
     if df[elevColumn].max() >= float(ranges[len(ranges) - 1][1]):
         top = df[elevColumn].max()
     else:
         top = float(ranges[len(ranges) - 1][1])
 
+    #Coloring between each range, making more red as goes up 
     for r in ranges:
         if r == ranges[0]:
             plt.fill_between(df[dayColumn], bottom, r[1], color= (197/255, 247/255, 158/255), alpha=0.5, label='Shaded Area')
@@ -385,13 +399,7 @@ def avgDailyFlow():
             plt.fill_between(df[dayColumn], r[0], r[1], color= (red, green, blue), alpha=0.5, label='Shaded Area')
 
 
-
-
-
-
-
-
-    
+    #Putting graph in folder
     plot_filename = os.path.join(new_folder_name, "Elevation Over Time.png")
     plt.savefig(plot_filename)
 
@@ -403,6 +411,7 @@ def avgDailyFlow():
 new_folder_name = "elev_analysis"
 count = 0
 
+#Creating a folder to put outputs in 
 while True:
 
     folder_path = os.path.join(os.getcwd(), new_folder_name)
