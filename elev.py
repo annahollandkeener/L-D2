@@ -49,6 +49,7 @@ while True:
         for format in date_formats:
             try:
                 df[dayColumn] = pd.to_datetime(df[dayColumn], format = format)
+                dateType = date_formats.index(format)
                 formatAccepted = True
                 break
             except ValueError:
@@ -139,7 +140,8 @@ if specify == 'y':
 #else:
 #ranges will be set to defaults
 #print("Ranges will be set to defaults.")
-ranges = [(-2, 1.5), (1.5, 2), (2, 3), (3, 3.5)]
+#ranges = [(-2, 1.5), (1.5, 2), (2, 3), (3, 3.5)]
+ranges = [(0, 5), (5, 10), (10, 15), (15, 20)]
 
 #print ranges
 print("\nYour ranges: ")
@@ -157,8 +159,42 @@ print(df)
 
 ######################DATA ANALYSIS###############################
 
-#Properly Filtering DataFrame. Groups by hour and takes assigns the mean for each hour. 
-df = df.groupby(pd.Grouper(freq='60min', key='Reading')).mean(numeric_only=True).round(2).dropna().reset_index()
+#Properly Filtering DataFrame.
+#Groups by hour and takes assigns the mean for each hour. 
+dateTypes = ['year', 'month', 'day', 'hour', 'minute']
+try:
+    df[dayColumn][0].year
+    increment = 'year'
+except AttributeError:
+    try:
+        df[dayColumn][0].month
+        increment = 'month'
+    except:
+        try:    
+            df[dayColumn][0].day
+            increment = 'day'
+        except AttributeError:
+            try:
+                df[dayColumn][0].hour
+                increment = 'hour'
+            except AttributeError:
+                try:
+                    df[dayColumn][0].minute
+                    increment = 'minute'
+                except:
+                    try:
+                        df[dayColumn][0].second
+                        increment = 'second'
+                    except:
+                        print("***Warning: Timestamp interval too large. Results will likely be inaccurate.***")
+                    
+
+
+
+                    
+print(dateType)
+print(df[dayColumn].dtypes)
+df = df.groupby(pd.Grouper(freq='60min', key=dayColumn)).mean(numeric_only=True).round(2).dropna().reset_index()
 
 #Creating a dictionary to store dataframes. Range dataframe can be accessed by range#_#df
 rangeDataFrames = {}
@@ -213,13 +249,12 @@ def flow_duration(range, instance):
                 i = curr
                 return instanceDF
             else:
-                if ((rangeDF['Day'][nex] - rangeDF['Day'][curr]) <= timedelta(hours=1)):
+                if ((rangeDF['Day'][nex] - rangeDF['Day'][curr]) <= timedelta(days=1)):
                     #print("CONSECUTIVE HOUR")
                     consecutive = True
                     duration += 1
                     curr += 1
                     nex += 1
-                    
                 else:
                     consecutive = False
                     new_row = {'dayStart': rangeDF['Day'][i], 'duration': duration, 'elev': rangeDF['Elev'][i]}
@@ -258,7 +293,7 @@ for r in ranges:
         days = []
 
         for d in instDataFrames[instDFName]['duration']:
-            days.append(round(d / 24, 1))
+            days.append(round(d // 24, 0))
         
         instDataFrames[instDFName]['Duration in Days'] = days
 
@@ -331,11 +366,14 @@ def avgDailyFlow():
     plt.plot(df[dayColumn], df[elevColumn], color='#424242', zorder = 2, linestyle = '-')
     
     #Labels
-    plt.title("Water Surface Elevation Over Time")
+    plt.title("Elevation Over Time")
     if relativedelta(df[dayColumn][len(df)- 1], df[dayColumn][0]).months > 1:
         plt.xlabel("Month")
+    elif relativedelta(df[dayColumn][len(df)- 1], df[dayColumn][0]).years > 1:
+        plt.xlabel("Year")
     else:
         plt.xlabel("Day")
+
     plt.ylabel("Elevation (ft)")
     #plt.xticks(months, monthLabels)
     plt.yticks(ytick_positions, ytick_labels)
@@ -431,7 +469,7 @@ for r in ranges:
 
     if len(inst) > 0:
         csv_path = os.path.join(folder_path, str(r[0]) + " to " + str(r[1]) + " ft.csv")
-        inst.to_csv(csv_path)
+        inst.to_csv(csv_path, index = False)
 
 avgDailyFlow()
 print("MAX: ")
